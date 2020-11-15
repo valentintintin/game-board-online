@@ -17,14 +17,14 @@ export class UserService {
     this._name$.subscribe(name => {
       if (name) {
         this.localStorageService.set('user.name', name);
-        this.websocketService.sendUserEvent(name);
+        this.websocketService.sendUserEvent('add', name);
       }
     });
 
     this.websocketService.getInitialUsers().subscribe(users => {
       this._users.next(users);
       if (this._name$.value) {
-        this.websocketService.sendUserEvent(this._name$.value);
+        this.websocketService.sendUserEvent('set', this._name$.value);
       }
     });
 

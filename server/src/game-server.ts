@@ -39,7 +39,6 @@ export class GameServer {
         this.io.on('connection', (socket) => {
             this.clients.push(socket);
             console.log('connect', socket.id);
-            this.sendInitialData(socket);
 
             socket.on('disconnect', () => {
                 console.log('disconnect', socket.id);
@@ -118,6 +117,10 @@ export class GameServer {
                 event.data.guid = socket.id;
 
                 Utils.replaceOrAddById(this.storageService.wsStorage.users, event.data);
+
+                if (event.name === 'add') {
+                    this.sendInitialData(socket);
+                }
 
                 this.sendAll('userEvent', event);
             });

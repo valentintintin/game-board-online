@@ -63,9 +63,9 @@ export class WebsocketService {
     }, 10);
   }
 
-  public sendUserEvent(name: string): void {
+  public sendUserEvent(eventName: string, name: string): void {
     const data: WsEvent<User> = {
-      name: 'add',
+      name: eventName,
       data: {
         name
       } as User
@@ -87,7 +87,7 @@ export class WebsocketService {
 
   public sendCollectionEvent(collection?: Collection) {
     const data: WsEvent<string> = {
-      name: collection ? 'add' : 'delete',
+      name: collection ? 'set' : 'delete',
       data: collection?.guid
     };
     console.log('collectionEvent', data);
