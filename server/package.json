@@ -16,7 +16,8 @@
     "@types/socket.io": "^2.1.11"
   },
   "scripts": {
-    "run": "ts-node src/index.ts"
+    "run": "ts-node src/index.ts",
+    "build": "tsc -p tsconfig.json"
   },
   "author": "",
   "license": "ISC"

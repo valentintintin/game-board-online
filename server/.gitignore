@@ -1,5 +1,5 @@
 src/config.js
 node_modules/
-public/assets/collections/
+collections/
 database.json
 ws-database.json

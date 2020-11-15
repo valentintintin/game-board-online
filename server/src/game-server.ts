@@ -22,11 +22,16 @@ export class GameServer {
 
     constructor() {
         this.app.use(express.static('public'));
+        this.app.use('/assets/collections', express.static('collections'));
 
         this.app.use((error, req, res, next) => {
             console.error('Error : ' + error);
             res.statusCode = 500;
             res.send(error.message);
+        });
+
+        this.app.get('*', function (req, res) {
+            res.redirect('/');
         });
 
         this.server.listen(config.API_PORT, () => console.log('Ready on port ' + config.API_PORT + ' !'));
@@ -61,6 +66,7 @@ export class GameServer {
                 if (event.name === 'delete') {
                     this.storageService.wsStorage.currentCollectionId = null;
                     this.storageService.wsStorage.drawing.length = 0;
+                    this.storageService.wsStorage.chatMessages.length = 0;
                 } else {
                     const collection = Utils.getById(this.storageService.storage.collections, event.data);
 

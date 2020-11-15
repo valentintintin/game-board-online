@@ -10,7 +10,7 @@ import { SocketIoModule } from 'ngx-socket-io';
 import { environment } from '../environments/environment';
 import { UserService } from './services/user.service';
 import { UserNameComponent } from './components/home/user-name/user-name.component';
-import { ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ListUserComponent } from './components/game/list-user/list-user.component';
 import { NgxLocalStorageModule } from 'ngx-localstorage';
 import { ChatComponent } from './components/game/chat/chat.component';
@@ -21,8 +21,7 @@ import { CollectionService } from './services/collection.service';
 import { ListCollectionComponent } from './components/game/collection/list-collection.component';
 import { HttpClientModule } from '@angular/common/http';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { NZ_I18N } from 'ng-zorro-antd/i18n';
-import { fr_FR } from 'ng-zorro-antd/i18n';
+import { fr_FR, NZ_I18N } from 'ng-zorro-antd/i18n';
 import { registerLocaleData } from '@angular/common';
 import fr from '@angular/common/locales/fr';
 import { HomeComponent } from './components/home/home.component';
@@ -39,15 +38,24 @@ import { NzListModule } from 'ng-zorro-antd/list';
 import { NameGuard } from './guards/name.guard';
 import { ConnectedGuard } from './guards/connected.guard';
 import { HasCollectionGuard } from './guards/has-collection.guard';
+import { IconDefinition } from '@ant-design/icons-angular';
+import {
+  BugTwoTone,
+  PauseCircleTwoTone,
+  RightOutline,
+  SendOutline,
+  WarningTwoTone
+} from '@ant-design/icons-angular/icons';
 
 registerLocaleData(fr);
+
+const icons: IconDefinition[] = [RightOutline, SendOutline, PauseCircleTwoTone, WarningTwoTone, BugTwoTone]
 
 @NgModule({
   declarations: [
     AppComponent,
     DrawingAreaComponent,
     UserNameComponent,
-    ListUserComponent,
     ListUserComponent,
     ChatComponent,
     ChatInputComponent,
@@ -69,7 +77,7 @@ registerLocaleData(fr);
     HttpClientModule,
     BrowserAnimationsModule,
     NzLayoutModule,
-    NzIconModule,
+    NzIconModule.forRoot(icons),
     NzButtonModule,
     NzInputModule,
     NzTypographyModule,
