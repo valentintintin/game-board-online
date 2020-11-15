@@ -1,0 +1,9 @@
+<form #ngForm="ngForm" [formGroup]="form" (ngSubmit)="changeName()">
+  <label for="name">Ton nom :</label>
+  <div id="input-container">
+    <input type="text" id="name" formControlName="name" nz-input placeholder="Votre prénom" nzSize="large" />
+    <button type="submit" [disabled]="form.invalid" nz-button nzType="primary" nzSize="large">
+      Se connecter<i nz-icon nzType="right" nzTheme="outline"></i>
+    </button>
+  </div>
+</form>

@@ -1,0 +1,176 @@
+import * as express from 'express';
+import { Server } from 'http';
+import * as SocketIO from 'socket.io';
+import { Socket } from 'socket.io';
+import { StorageService } from './storage.service';
+import * as config from './config';
+import { Utils } from '../../common/utils';
+import { WsEvent } from '../../common/models/wsEvent';
+import { Initial } from '../../common/models/initial';
+import { User } from '../../common/models/user';
+import { Image } from '../../common/models/image';
+import { ChatMessage } from '../../common/models/chatMessage';
+
+export class GameServer {
+    public readonly storageService = new StorageService();
+
+    private readonly app: express.Application = express();
+    private readonly server: Server = require('http').createServer(this.app);
+
+    private readonly io: SocketIO.Server = require('socket.io')(this.server);
+    private readonly clients: SocketIO.Socket[] = [];
+
+    constructor() {
+        this.app.use(express.static('public'));
+
+        this.app.use((error, req, res, next) => {
+            console.error('Error : ' + error);
+            res.statusCode = 500;
+            res.send(error.message);
+        });
+
+        this.server.listen(config.API_PORT, () => console.log('Ready on port ' + config.API_PORT + ' !'));
+
+        this.io.on('connection', (socket) => {
+            this.clients.push(socket);
+            console.log('connect', socket.id);
+            this.sendInitialData(socket);
+
+            socket.on('disconnect', () => {
+                console.log('disconnect', socket.id);
+
+                let user = null;
+                try {
+                    user = Utils.removeById(this.storageService.wsStorage.users, socket.id)
+                } catch (e) {
+                }
+
+                if (user) {
+                    this.sendAll('userEvent', {
+                        name: 'delete',
+                        data: user
+                    } as WsEvent<User>);
+                }
+
+                Utils.removeBy(this.clients, c => c.id === socket.id);
+            });
+
+            socket.on('collectionEvent', (event: WsEvent<string>) => {
+                console.log(socket.id, 'collectionEvent', event);
+
+                if (event.name === 'delete') {
+                    this.storageService.wsStorage.currentCollectionId = null;
+                    this.storageService.wsStorage.drawing.length = 0;
+                } else {
+                    const collection = Utils.getById(this.storageService.storage.collections, event.data);
+
+                    this.storageService.wsStorage.currentCollectionId = event.data;
+
+                    this.storageService.wsStorage.drawing.length = 0;
+                    collection.initial.forEach(c => {
+                        let randomImages: Image[] = null;
+                        if (c.randomizeUrl) {
+                            randomImages = Utils.shuffle(c.images);
+                        }
+
+                        c.images.forEach(i => {
+                            const image: Image = Utils.clone(i);
+                            image.guid = Utils.uuidv4();
+
+                            if (c.randomizeUrl) {
+                                const imageRandom = randomImages.pop();
+                                image.imageUrl = imageRandom.imageUrl;
+                                image.imageBackUrl = imageRandom.imageBackUrl;
+                            }
+
+                            this.storageService.wsStorage.drawing.push(image);
+                        });
+                    });
+                }
+
+                this.sendAllInitialData();
+            });
+
+            socket.on('chatEvent', (event: WsEvent<ChatMessage>) => {
+                console.log(socket.id, 'chatEvent', event);
+
+                event.data.user = Utils.getById(this.storageService.wsStorage.users, socket.id);
+                event.data.date = new Date();
+
+                this.storageService.wsStorage.chatMessages.unshift(event.data);
+
+                this.sendAll('chatEvent', event);
+            });
+
+            socket.on('userEvent', (event: WsEvent<User>) => {
+                console.log(socket.id, 'userEvent', event);
+
+                if (!event.data.name?.trim()) {
+                    return;
+                }
+
+                event.data.guid = socket.id;
+
+                Utils.replaceOrAddById(this.storageService.wsStorage.users, event.data);
+
+                this.sendAll('userEvent', event);
+            });
+
+            socket.on('imageEvent', (event: WsEvent<Image>) => {
+                console.log(socket.id, 'imageEvent', event);
+
+                try {
+                    event.data.lastUser = Utils.getById(this.storageService.wsStorage.users, socket.id);
+                } catch (e) {
+                    console.error(e);
+                }
+
+                if (event.name === 'delete') {
+                    try {
+                        Utils.removeById(this.storageService.wsStorage.drawing, event.data.guid);
+                    } catch (e) {
+                    }
+                } else {
+                    Utils.replaceOrAddById(this.storageService.wsStorage.drawing, event.data);
+                }
+
+                this.sendAll('imageEvent', event, socket.id);
+            });
+        });
+    }
+
+    public sendAll(eventName, data, excludeId: string = null): void {
+        for (const user of this.storageService.wsStorage.users) {
+            if (user.guid !== excludeId) {
+                this.send(Utils.getBy(this.clients, c => c.id === user.guid), eventName, data);
+            }
+        }
+    }
+
+    public send(socket: Socket, eventName: string, data: WsEvent<any>): void {
+        console.log('send ' + eventName, data, socket.id);
+        socket.emit(eventName, data);
+    }
+
+    public sendInitialData(socket: Socket): void {
+        this.send(socket, 'allDatas', this.getInitalDataEvent());
+    }
+
+    public sendAllInitialData(): void {
+        this.sendAll('allDatas', this.getInitalDataEvent());
+    }
+
+    public saveBeforeExit(): void {
+        this.storageService.saveWsStorage();
+    }
+
+    private getInitalDataEvent(): WsEvent<Initial> {
+        return {
+            name: 'initial',
+            data: {
+                wsStorage: this.storageService.wsStorage,
+                storage: this.storageService.storage
+            }
+        };
+    }
+}

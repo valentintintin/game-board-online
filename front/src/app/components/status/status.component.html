@@ -1,0 +1,7 @@
+<div id="container">
+  <div [ngSwitch]="state">
+    <nz-result *ngSwitchCase="'game.pause'" [nzIcon]="'pause-circle-twotone'" nzTitle="Le jeu est en pause"></nz-result>
+    <nz-result *ngSwitchCase="'network.error'" [nzIcon]="'warning'" nzTitle="Connexion perdue"></nz-result>
+    <nz-result *ngSwitchDefault [nzIcon]="'bug'" nzTitle="Erreur inconnue"></nz-result>
+  </div>
+</div>

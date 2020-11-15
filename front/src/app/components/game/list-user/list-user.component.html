@@ -1,0 +1,11 @@
+<ul nz-list>
+  <nz-list-header>
+    <h3 nz-typography>Joueurs</h3>
+  </nz-list-header>
+
+  <nz-list-empty nzNoResult="Aucun joueur connecté" *ngIf="(userService.users$ | async).length === 0"></nz-list-empty>
+
+  <li nz-list-item *ngFor="let user of userService.users$ | async" nzNoFlex>
+    {{ user.name ? user.name : user.guid }}
+  </li>
+</ul>

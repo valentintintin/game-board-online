@@ -1,0 +1,24 @@
+<div>
+  <div *ngIf="(collectionService.currentCollection$ | async) as currentCollection; else list">
+    <h3 nz-typography>{{ currentCollection.name }}</h3>
+    <app-list-image [images]="currentCollection.images"></app-list-image>
+    <button nz-button type="button" (click)="setCurrentCollection(null)">Remettre à zéro</button>
+  </div>
+
+  <ng-template #list>
+    <ul nz-list [nzDataSource]="collectionService.collections$ | async" nzNoResult="Aucune pièce">
+      <nz-list-header>
+        <h3 nz-typography>Liste des jeux</h3>
+      </nz-list-header>
+
+      <li nz-list-item *ngFor="let collection of collectionService.collections$ | async" nzNoFlex>
+        <img *ngIf="collection.imageUrl?.length > 0; else button" class="pointer"
+             [src]="collection.imageUrl[0]" [alt]="collection.name"
+             (click)="setCurrentCollection(collection)" />
+        <ng-template #button>
+          <button nz-button type="button" (click)="setCurrentCollection(collection)">{{ collection.name }}</button>
+        </ng-template>
+      </li>
+    </ul>
+  </ng-template>
+</div>
