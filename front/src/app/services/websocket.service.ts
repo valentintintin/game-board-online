@@ -6,7 +6,6 @@ import { map } from 'rxjs/operators';
 import { WsEvent } from '../../../../common/models/wsEvent';
 import { User } from '../../../../common/models/user';
 import { ChatMessage } from '../../../../common/models/chatMessage';
-import { ImageFn } from '../models/imageFn';
 import { Initial } from '../../../../common/models/initial';
 import { Collection } from '../../../../common/models/storage';
 import { Router } from '@angular/router';
@@ -36,7 +35,7 @@ export class WebsocketService {
     return this._connected$.asObservable();
   }
 
-  public sendImageEvent(eventName: string, image: ImageFn): void {
+  public sendImageEvent(eventName: string, image: Image): void {
     setTimeout(() => {
       const data: WsEvent<Image> = {
         name: eventName,

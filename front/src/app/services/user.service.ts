@@ -4,6 +4,7 @@ import { Utils } from '../../../../common/utils';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { User } from '../../../../common/models/user';
 import { LocalStorageService } from 'ngx-localstorage';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -37,6 +38,10 @@ export class UserService {
         this._users.next(this._users.value);
       }
     });
+
+    if (!environment.production) {
+      this.changeName(this.localStorageService.get('user.name'));
+    }
   }
 
   public changeName(name: string): void {

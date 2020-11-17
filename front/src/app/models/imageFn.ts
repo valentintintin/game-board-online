@@ -16,5 +16,5 @@ export interface ImageFn extends Image {
       end?: () => void,
     }): void;
 
-    bind(eventName: string, closure: (event) => void): void;
+    bind(eventName: string, closure: (event) => void): ImageFn;
 }

@@ -1,6 +1,6 @@
 <nz-layout>
   <nz-layout>
-    <nz-sider [nzWidth]="250">
+    <nz-sider class="left" [nzWidth]="250" [nzCollapsible]="true" [nzCollapsedWidth]="0" nzBreakpoint="md">
       <app-list-collection></app-list-collection>
     </nz-sider>
 
@@ -8,7 +8,7 @@
       <app-drawing-area></app-drawing-area>
     </nz-content>
 
-    <nz-sider [nzWidth]="250">
+    <nz-sider class="right" [nzWidth]="250" [nzCollapsible]="true" [nzCollapsedWidth]="0" nzBreakpoint="lg">
       <app-list-user></app-list-user>
       <app-chat></app-chat>
     </nz-sider>

@@ -1,1 +1,9 @@
 <canvas id="canvas" width="1024" height="768"></canvas>
+
+<nz-dropdown-menu #menu="nzDropdownMenu">
+  <ul nz-menu nzSelectable>
+    <li nz-menu-item *ngIf="drawingService.imageDropDown?.imageBackUrl" (click)="drawingService.turnImage(drawingService.imageDropDown)">Retourner</li>
+    <li nz-menu-item *ngIf="drawingService.imageDropDown?.rotatable" (click)="drawingService.rotateImage(drawingService.imageDropDown)">Pivoter</li>
+    <li nz-menu-item *ngIf="drawingService.canDeleteImage(drawingService.imageDropDown)" (click)="drawingService.deleteImage(drawingService.imageDropDown)">Supprimer</li>
+  </ul>
+</nz-dropdown-menu>

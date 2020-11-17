@@ -1,16 +1,19 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { AfterViewInit, Component, ViewChild } from '@angular/core';
 import { DrawingService } from '../../../services/drawing.service';
+import { NzDropdownMenuComponent } from 'ng-zorro-antd/dropdown';
 
 @Component({
   selector: 'app-drawing-area',
   templateUrl: './drawing-area.component.html',
   styleUrls: ['./drawing-area.component.scss']
 })
-export class DrawingAreaComponent implements OnInit {
+export class DrawingAreaComponent implements AfterViewInit {
 
-  constructor(private drawingService: DrawingService) { }
+  @ViewChild('menu') menu: NzDropdownMenuComponent;
 
-  ngOnInit(): void {
-    this.drawingService.createCanvas('canvas');
+  constructor(public drawingService: DrawingService) { }
+
+  ngAfterViewInit(): void {
+    this.drawingService.createCanvas('canvas', this.menu);
   }
 }

@@ -3,6 +3,7 @@ import { WebsocketService } from './websocket.service';
 import { Image, ImageDef } from '../../../../common/models/image';
 import { Utils } from '../../../../common/utils';
 import { ImageFn } from '../models/imageFn';
+import { NzContextMenuService, NzDropdownMenuComponent } from 'ng-zorro-antd/dropdown';
 
 const oCanvas = require('ocanvas');
 
@@ -11,17 +12,20 @@ const oCanvas = require('ocanvas');
 })
 export class DrawingService {
 
+  public imageDropDown: ImageFn;
+
   private canvas;
   private drawingDatas: ImageFn[] = [];
+  private dropDownMenu: NzDropdownMenuComponent;
 
-  constructor(private websocketService: WebsocketService) {
+  constructor(private websocketService: WebsocketService, private nzContextMenuService: NzContextMenuService) {
     this.websocketService.getImageEvent().subscribe(event => {
       console.log('eventImage', event);
 
       if (event.name !== 'delete') {
         this.addOrSetImage(event.data);
       } else {
-        this.deleteImage(event.data.guid);
+        this.deleteImage(event.data, false);
       }
     });
 
@@ -29,7 +33,7 @@ export class DrawingService {
       console.log('allDrawing', datas, this.drawingDatas);
 
       while (this.drawingDatas.length) {
-        this.deleteImage(this.drawingDatas[0].guid);
+        this.deleteImage(this.drawingDatas[0]);
       }
 
       setTimeout(_ => {
@@ -42,10 +46,11 @@ export class DrawingService {
     })
   }
 
-  public createCanvas(canvasId: string) {
+  public createCanvas(canvasId: string, dropDownMenu: NzDropdownMenuComponent) {
     this.canvas = oCanvas.create({
       canvas: '#' + canvasId
     });
+    this.dropDownMenu = dropDownMenu;
   }
 
   public addImage(imageDef: ImageDef): ImageFn {
@@ -120,6 +125,12 @@ export class DrawingService {
     image.changeIndex = imageDef.changeIndex;
     image.lastUser = (imageDef as Image).lastUser;
 
+    if (imageDef.imageBackUrl || imageDef.deletable || imageDef.rotatable) {
+      image.bind('dbltap', event => {
+        this.showDropDown(image, event);
+      });
+    }
+
     if (imageDef.movable) {
       image.dragAndDrop({
         changeZindex: image.changeIndex,
@@ -132,24 +143,16 @@ export class DrawingService {
     if (imageDef.deletable || imageDef.rotatable) {
       image.bind('click', (event) => {
         if (event.which === 2 && imageDef.rotatable) { // right
-          image.rotate(22.5);
-          this.canvas.redraw();
-          this.websocketService.sendImageEvent('rotate', image);
-        } else if (event.which === 3 && imageDef.deletable) { // middle
-          this.deleteImage(image.guid);
-          this.websocketService.sendImageEvent('delete', image);
+          this.rotateImage(image);
+        } else if (event.which === 3 && this.canDeleteImage(imageDef)) { // middle
+          this.deleteImage(image);
         }
       });
     }
 
     if (imageDef.imageBackUrl) {
       image.bind('dblclick', (event) => {
-          console.log('dblclick invert showBack');
-          this.deleteImage(image.guid);
-          this.websocketService.sendImageEvent('delete', image);
-          image.showBack = !image.showBack;
-          this.addOrSetImage(image);
-          this.websocketService.sendImageEvent('add', image);
+          this.turnImage(image);
       });
     }
 
@@ -158,15 +161,55 @@ export class DrawingService {
     return image;
   }
 
-  private deleteImage(id): void {
+  public canDeleteImage(imageDef: ImageDef): boolean {
+    return !!imageDef && imageDef.deletable && (!imageDef.imageBackUrl || !imageDef.showBack);
+  }
+
+  public rotateImage(image: ImageFn): void {
+    image.rotate(22.5);
+    this.canvas.redraw();
+    this.websocketService.sendImageEvent('rotate', image);
+
+    this.imageDropDown = null;
+  }
+
+  public turnImage(image: ImageFn): void {
+    this.deleteImage(image);
+    this.websocketService.sendImageEvent('delete', image);
+    image.showBack = !image.showBack;
+    this.addOrSetImage(image);
+    this.websocketService.sendImageEvent('add', image);
+
+    this.imageDropDown = null;
+  }
+
+  public deleteImage(image: Image, sendEvent = true): void {
     try {
-      Utils.removeById(this.drawingDatas, id).remove(true);
+      Utils.removeById(this.drawingDatas, image.guid).remove(true);
     } catch (e) {
       console.error(e);
     }
+
+    if (sendEvent) {
+      this.websocketService.sendImageEvent('delete', image);
+      this.imageDropDown = null;
+    }
   }
 
-  private getImageById(id): ImageFn {
+  private getImageById(id: string): ImageFn {
     return Utils.getById(this.drawingDatas, id);
+  }
+
+  private showDropDown(image: ImageFn, event): void {
+    if (this.dropDownMenu) {
+      this.imageDropDown = image;
+      var touch: Touch = event.originalEvent.touches[0] || event.originalEvent.changedTouches[0];
+      this.nzContextMenuService.create({
+        x: touch.clientX,
+        y: touch.clientY
+      }, this.dropDownMenu);
+    } else {
+      console.error('DropDown element null');
+    }
   }
 }

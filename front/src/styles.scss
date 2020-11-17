@@ -1,18 +1,12 @@
-.ant-layout-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  h1 {
-    margin-top: 19px;
-  }
-}
-
 .ant-layout-header,
 .ant-layout-footer,
 .ant-layout-sider {
-  text-align: center;
   background: rgb(229, 246, 254);
+}
+
+.ant-layout-footer,
+.ant-layout-sider {
+  text-align: center;
 }
 
 .ant-layout-sider {
@@ -27,8 +21,18 @@
   min-height: calc(100vh - 64px);
 }
 
-
-
 .pointer {
   cursor: pointer;
+}
+
+.ant-layout-sider-zero-width-trigger {
+  top: -55px;
+}
+
+.ant-layout-sider.left .ant-layout-sider-zero-width-trigger {
+  left: 0;
+}
+
+.ant-layout-sider.right .ant-layout-sider-zero-width-trigger {
+  right: 0;
 }
