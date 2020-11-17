@@ -26,6 +26,12 @@ export class CollectionService {
         this._currentCollection$.next(null);
       }
     });
+
+    this.websocketService.connected$.subscribe(state => {
+      if (!state) {
+        this._currentCollection$.next(null);
+      }
+    });
   }
 
   public changeCurrentCollection(collection?: Collection): void {

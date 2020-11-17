@@ -39,6 +39,14 @@ export class UserService {
       }
     });
 
+    this.websocketService.connected$.subscribe(state => {
+      if (!state) {
+        this._users.next([]);
+      } else if (this._name$.value) {
+        this.changeName(this._name$.value);
+      }
+    });
+
     if (!environment.production) {
       this.changeName(this.localStorageService.get('user.name'));
     }
