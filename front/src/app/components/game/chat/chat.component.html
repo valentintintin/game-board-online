@@ -5,7 +5,7 @@
 
   <li nz-list-item *ngFor="let chat of chatService.messages$ | async" nzNoFlex>
     <strong>{{ chat.user.name }}</strong> à <i>{{ chat.date | date:'short' }}</i>
-    <pre>{{ chat.message }}</pre>
+    <div class="message">{{ chat.message }}</div>
   </li>
 
   <nz-list-empty nzNoResult="Aucun message" *ngIf="(chatService.messages$ | async).length === 0"></nz-list-empty>
