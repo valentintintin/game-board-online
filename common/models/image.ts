@@ -1,11 +1,11 @@
 import { Id } from './id';
-import { User } from './user';
 
 export interface ImageDef {
     imageUrl: string;
 
     imageBackUrl?: string;
     showBack?: boolean;
+    shouldTurnOnce?: boolean;
 
     width: number;
     height: number;
@@ -18,13 +18,13 @@ export interface ImageDef {
     changeIndex?: boolean;
 
     name?: string;
-    hiddenFromOthers?: boolean; // todo
+    hiddenFromOthers?: boolean;
 }
 
 export interface Image extends ImageDef, Id {
     x: number;
     y: number;
 
-    lastUser?: User;
+    lastUser?: string;
 }
 

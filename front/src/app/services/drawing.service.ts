@@ -4,6 +4,7 @@ import { Image, ImageDef } from '../../../../common/models/image';
 import { Utils } from '../../../../common/utils';
 import { ImageFn } from '../models/imageFn';
 import { NzContextMenuService, NzDropdownMenuComponent } from 'ng-zorro-antd/dropdown';
+import { UserService } from './user.service';
 
 const oCanvas = require('ocanvas');
 
@@ -18,7 +19,8 @@ export class DrawingService {
   private drawingDatas: ImageFn[] = [];
   private dropDownMenu: NzDropdownMenuComponent;
 
-  constructor(private websocketService: WebsocketService, private nzContextMenuService: NzContextMenuService) {
+  constructor(private websocketService: WebsocketService, private nzContextMenuService: NzContextMenuService,
+              private userService: UserService) {
     this.websocketService.getImageEvent().subscribe(event => {
       console.log('eventImage', event);
 
@@ -33,7 +35,7 @@ export class DrawingService {
       console.log('allDrawing', datas, this.drawingDatas);
 
       while (this.drawingDatas.length) {
-        this.deleteImage(this.drawingDatas[0]);
+        this.deleteImage(this.drawingDatas[0], false);
       }
 
       setTimeout(_ => {
@@ -106,7 +108,7 @@ export class DrawingService {
       y: y,
       rotation: imageDef.rotation ?? 0,
       origin: {x: "center", y: "center"},
-      image: imageDef.showBack ? imageDef.imageBackUrl : imageDef.imageUrl
+      image: this.shouldSeeImageFace(imageDef) ? imageDef.imageUrl : imageDef.imageBackUrl
     });
     if (imageDef.width) {
       image.width = imageDef.width;
@@ -120,39 +122,40 @@ export class DrawingService {
     image.deletable = imageDef.deletable;
     image.imageUrl = imageDef.imageUrl;
     image.imageBackUrl = imageDef.imageBackUrl;
+    image.shouldTurnOnce = imageDef.shouldTurnOnce;
     image.showBack = imageDef.showBack;
     image.hiddenFromOthers = imageDef.hiddenFromOthers;
     image.changeIndex = imageDef.changeIndex;
     image.lastUser = (imageDef as Image).lastUser;
 
-    if (imageDef.imageBackUrl || imageDef.deletable || imageDef.rotatable) {
+    if (this.canDoActionOnImage(image)) {
+      if (this.canMoveImage(image)) {
+        image.dragAndDrop({
+          changeZindex: image.changeIndex,
+          end: () => {
+            this.websocketService.sendImageEvent('move', image);
+          }
+        });
+      }
+
+      if (this.canDeleteImage(image) || this.canRotateImage(image)) {
+        image.bind('click', (event) => {
+          if (event.which === 2 && this.canRotateImage(image)) { // right
+            this.rotateImage(image);
+          } else if (event.which === 3 && this.canDeleteImage(image)) { // middle
+            this.deleteImage(image);
+          }
+        });
+      }
+
+      if (this.canTurnImage(image)) {
+        image.bind('dblclick', _ => {
+          this.turnImage(image);
+        });
+      }
+
       image.bind('dbltap', event => {
         this.showDropDown(image, event);
-      });
-    }
-
-    if (imageDef.movable) {
-      image.dragAndDrop({
-        changeZindex: image.changeIndex,
-        end: () => {
-          this.websocketService.sendImageEvent('move', image);
-        }
-      });
-    }
-
-    if (imageDef.deletable || imageDef.rotatable) {
-      image.bind('click', (event) => {
-        if (event.which === 2 && imageDef.rotatable) { // right
-          this.rotateImage(image);
-        } else if (event.which === 3 && this.canDeleteImage(imageDef)) { // middle
-          this.deleteImage(image);
-        }
-      });
-    }
-
-    if (imageDef.imageBackUrl) {
-      image.bind('dblclick', (event) => {
-          this.turnImage(image);
       });
     }
 
@@ -161,12 +164,54 @@ export class DrawingService {
     return image;
   }
 
-  public canDeleteImage(imageDef: ImageDef): boolean {
-    return !!imageDef && imageDef.deletable && (!imageDef.imageBackUrl || !imageDef.showBack);
+  public canMoveImage(imageDef: ImageDef): boolean {
+    return this.hasRightToDoActionOnImage(imageDef) && imageDef?.movable;
   }
 
-  public rotateImage(image: ImageFn): void {
-    image.rotate(22.5);
+  public canRotateImage(imageDef: ImageDef): boolean {
+    return this.hasRightToDoActionOnImage(imageDef) && imageDef?.rotatable;
+  }
+
+  public canTurnImage(imageDef: ImageDef): boolean {
+    return this.hasRightToDoActionOnImage(imageDef)
+      && (Boolean(imageDef?.imageBackUrl) && (!imageDef?.shouldTurnOnce || imageDef?.showBack));
+  }
+
+  public canDeleteImage(imageDef: ImageDef): boolean {
+    return this.hasRightToDoActionOnImage(imageDef) && imageDef?.deletable && (!this.imageHasBack(imageDef) || !imageDef?.showBack);
+  }
+
+  public isMyImage(imageDef: Image): boolean {
+    return this.userService.isMe(imageDef?.lastUser);
+  }
+
+  public imageHasBack(imageDef: ImageDef): boolean {
+    return Boolean(imageDef?.imageBackUrl);
+  }
+
+  public canDoActionOnImage(imageDef: ImageDef): boolean {
+    const actions = this.canMoveImage(imageDef)
+      || this.canRotateImage(imageDef)
+      || this.canDeleteImage(imageDef)
+      || this.canTurnImage(imageDef);
+
+    return actions && this.hasRightToDoActionOnImage(imageDef);
+  }
+
+  public hasRightToDoActionOnImage(imageDef: ImageDef): boolean {
+    return !imageDef?.hiddenFromOthers || this.isMyImage(<Image> imageDef);
+  }
+
+  public shouldSeeImageFace(imageDef: ImageDef): boolean {
+    if (!this.imageHasBack(imageDef)) {
+      return true;
+    }
+
+    return this.canDoActionOnImage(imageDef) && !imageDef?.showBack;
+  }
+
+  public rotateImage(image: ImageFn, degrees = 22.5): void {
+    image.rotate(degrees);
     this.canvas.redraw();
     this.websocketService.sendImageEvent('rotate', image);
 
@@ -175,7 +220,6 @@ export class DrawingService {
 
   public turnImage(image: ImageFn): void {
     this.deleteImage(image);
-    this.websocketService.sendImageEvent('delete', image);
     image.showBack = !image.showBack;
     this.addOrSetImage(image);
     this.websocketService.sendImageEvent('add', image);
@@ -203,7 +247,7 @@ export class DrawingService {
   private showDropDown(image: ImageFn, event): void {
     if (this.dropDownMenu) {
       this.imageDropDown = image;
-      var touch: Touch = event.originalEvent.touches[0] || event.originalEvent.changedTouches[0];
+      const touch: Touch = event.originalEvent.touches[0] || event.originalEvent.changedTouches[0];
       this.nzContextMenuService.create({
         x: touch.clientX,
         y: touch.clientY
