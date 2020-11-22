@@ -41,6 +41,7 @@ export class WebsocketService {
         name: eventName,
         data: {
           guid: image.guid,
+          groupId: image.groupId,
           imageUrl: image.imageUrl,
           x: image.x,
           y: image.y,
@@ -55,7 +56,7 @@ export class WebsocketService {
           shouldTurnOnce: image.shouldTurnOnce,
           hiddenFromOthers: image.hiddenFromOthers,
           changeIndex: image.changeIndex,
-          lastUser: image.lastUser,
+          lastUserId: image.lastUserId,
         } as Image
       };
       console.log(eventName, data, image);

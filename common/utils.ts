@@ -1,5 +1,4 @@
 import { Id } from './models/id';
-import { ImageFn } from '../front/src/app/models/imageFn';
 
 export class Utils {
 
@@ -8,6 +7,13 @@ export class Utils {
       return (((1+Math.random())*0x10000)|0).toString(16).substring(1);
     }
     return (S4() + S4() + "-" + S4() + "-4" + S4().substr(0,3) + "-" + S4() + "-" + S4() + S4() + S4()).toLowerCase();
+  }
+
+  public static hashCode(input: string): number {
+    return input.split('').reduce((a,b) => {
+      a = (( a << 5 ) - a) + b.charCodeAt(0);
+      return a & a
+    }, 0);
   }
 
   public static replaceOrAddById<T extends Id>(array: T[], element: T): void {

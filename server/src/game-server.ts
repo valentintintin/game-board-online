@@ -130,14 +130,6 @@ export class GameServer {
             socket.on('imageEvent', (event: WsEvent<Image>) => {
                 console.log(socket.id, 'imageEvent', event);
 
-                if (!event.data.lastUser || !event.data.hiddenFromOthers) {
-                    try {
-                        event.data.lastUser = Utils.getBy(this.storageService.wsStorage.users, u => u.socketId === socket.id)?.guid;
-                    } catch (e) {
-                        console.error(e);
-                    }
-                }
-
                 if (event.name === 'delete') {
                     try {
                         Utils.removeById(this.storageService.wsStorage.drawing, event.data.guid);
@@ -154,7 +146,7 @@ export class GameServer {
 
     public sendAll(eventName, data, excludeId: string = null): void {
         for (const user of this.storageService.wsStorage.users) {
-            if (user.guid !== excludeId) {
+            if (user.socketId !== excludeId) {
                 this.send(Utils.getBy(this.clients, c => c.id === user.socketId), eventName, data);
             }
         }

@@ -32,7 +32,7 @@ export class DrawingService {
     });
 
     this.websocketService.getInitialDrawing().subscribe(datas => {
-      console.log('allDrawing', datas, this.drawingDatas);
+      console.log('allDrawing', datas);
 
       while (this.drawingDatas.length) {
         this.deleteImage(this.drawingDatas[0], false);
@@ -58,7 +58,7 @@ export class DrawingService {
   public addImage(imageDef: ImageDef): ImageFn {
     const image = this.addOrSetImage(imageDef);
 
-    this.websocketService.sendImageEvent('add', image);
+    this.websocketService.sendImageEvent('add', this.setLastUserImage(image));
 
     return image;
   }
@@ -117,6 +117,7 @@ export class DrawingService {
       image.height = imageDef.height;
     }
     image.guid = (imageDef as Image).guid ? (imageDef as Image).guid : Utils.uuidv4();
+    image.groupId = imageDef.groupId;
     image.movable = imageDef.movable;
     image.rotatable = imageDef.rotatable;
     image.deletable = imageDef.deletable;
@@ -126,14 +127,14 @@ export class DrawingService {
     image.showBack = imageDef.showBack;
     image.hiddenFromOthers = imageDef.hiddenFromOthers;
     image.changeIndex = imageDef.changeIndex;
-    image.lastUser = (imageDef as Image).lastUser;
+    image.lastUserId = (imageDef as Image).lastUserId;
 
     if (this.canDoActionOnImage(image)) {
       if (this.canMoveImage(image)) {
         image.dragAndDrop({
           changeZindex: image.changeIndex,
           end: () => {
-            this.websocketService.sendImageEvent('move', image);
+            this.websocketService.sendImageEvent('move', this.setLastUserImage(image));
           }
         });
       }
@@ -182,7 +183,7 @@ export class DrawingService {
   }
 
   public isMyImage(imageDef: Image): boolean {
-    return this.userService.isMe(imageDef?.lastUser);
+    return this.userService.isMe(imageDef?.lastUserId);
   }
 
   public imageHasBack(imageDef: ImageDef): boolean {
@@ -213,7 +214,7 @@ export class DrawingService {
   public rotateImage(image: ImageFn, degrees = 22.5): void {
     image.rotate(degrees);
     this.canvas.redraw();
-    this.websocketService.sendImageEvent('rotate', image);
+    this.websocketService.sendImageEvent('rotate', this.setLastUserImage(image));
 
     this.imageDropDown = null;
   }
@@ -222,9 +223,26 @@ export class DrawingService {
     this.deleteImage(image);
     image.showBack = !image.showBack;
     this.addOrSetImage(image);
-    this.websocketService.sendImageEvent('add', image);
+    this.websocketService.sendImageEvent('add', this.setLastUserImage(image));
 
     this.imageDropDown = null;
+  }
+
+  public deleteImagesByGroupId(groupId: string, state: 'touched' | 'not_touched' = null): ImageFn[] {
+    const toDelete = this.getImagesByGroupId(groupId, state);
+    toDelete.forEach(i => {
+      setTimeout(_ => this.deleteImage(i), 100);
+    });
+    return toDelete;
+  }
+
+  public getImagesByGroupId(groupId: string, state: 'touched' | 'not_touched' = null): ImageFn[] {
+    return this.drawingDatas.filter(i => i.groupId === groupId &&
+      (!state ||
+        (state === 'touched' && i.lastUserId)
+        || (state === 'not_touched' && !i.lastUserId)
+      )
+    );
   }
 
   public deleteImage(image: Image, sendEvent = true): void {
@@ -235,13 +253,21 @@ export class DrawingService {
     }
 
     if (sendEvent) {
-      this.websocketService.sendImageEvent('delete', image);
+      this.websocketService.sendImageEvent('delete', this.setLastUserImage(<ImageFn> image));
       this.imageDropDown = null;
     }
   }
 
   private getImageById(id: string): ImageFn {
     return Utils.getById(this.drawingDatas, id);
+  }
+
+  private setLastUserImage(image: ImageFn): ImageFn {
+    if (!image.lastUserId || !image.hiddenFromOthers) {
+      image.lastUserId = this.userService.userId;
+    }
+
+    return image;
   }
 
   private showDropDown(image: ImageFn, event): void {

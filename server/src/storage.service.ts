@@ -2,6 +2,7 @@ import { JsonDB } from 'node-json-db';
 import { Config } from 'node-json-db/dist/lib/JsonDBConfig';
 import { Storage } from '../../common/models/storage';
 import { WsStorage } from '../../common/models/ws-storage';
+import { Utils } from '../../common/utils';
 
 export class StorageService {
     public readonly db = new JsonDB(new Config('database', true, true, '/'));
@@ -19,6 +20,14 @@ export class StorageService {
         if (!this.storage.collections) {
             this.storage.collections = [];
         }
+
+        this.storage.collections.forEach(c => {
+            c.guid = Utils.hashCode(c.name).toString();
+            c.initial.forEach(i => {
+                i.guid = Utils.hashCode(i.name).toString();
+                i.images.forEach(ii => ii.groupId = i.guid);
+            });
+        });
 
         if (!this.wsStorage) {
             this.wsStorage = {
@@ -42,5 +51,6 @@ export class StorageService {
     public saveWsStorage(): void {
         delete this.wsStorage.users;
         this.wsDb.push('/', this.wsStorage, true);
+        console.log('Sauvegarde de l\'état effectué');
     }
 }

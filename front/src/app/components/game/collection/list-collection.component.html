@@ -2,7 +2,17 @@
   <div *ngIf="(collectionService.currentCollection$ | async) as currentCollection; else list">
     <h3 nz-typography>{{ currentCollection.name }}</h3>
     <app-list-image [images]="currentCollection.images"></app-list-image>
-    <button nz-button type="button" (click)="setCurrentCollection(null)">Remettre à zéro</button>
+
+    <div *ngFor="let imageCollection of currentCollection.initial">
+      <button *ngIf="imageCollection.canReset" nz-button type="button" (click)="collectionService.resetInitial(imageCollection)">
+        {{ imageCollection.resetOnlyVisible ? 'Mélanger les ' + imageCollection.name + ' piochées' : 'Mélanger les ' + imageCollection.name }}
+      </button>
+      <button *ngIf="imageCollection.canRemoveNotUsed" nz-button type="button" (click)="collectionService.removeInitialNotUsed(imageCollection)">
+        Enlever le surplus de {{ imageCollection.name }}
+      </button>
+    </div>
+
+    <button nz-button nzType="primary" type="button" nzDanger (click)="collectionService.changeCurrentCollection(null)">Changer de jeu</button>
   </div>
 
   <ng-template #list>
@@ -14,9 +24,9 @@
       <li nz-list-item *ngFor="let collection of collectionService.collections$ | async" nzNoFlex>
         <img *ngIf="collection.imageUrl?.length > 0; else button" class="pointer"
              [src]="collection.imageUrl[0]" [alt]="collection.name"
-             (click)="setCurrentCollection(collection)" />
+             (click)="collectionService.changeCurrentCollection(collection)" />
         <ng-template #button>
-          <button nz-button type="button" (click)="setCurrentCollection(collection)">{{ collection.name }}</button>
+          <button nz-button type="button" (click)="collectionService.changeCurrentCollection(collection)">{{ collection.name }}</button>
         </ng-template>
       </li>
     </ul>

@@ -19,12 +19,14 @@ export interface ImageDef {
 
     name?: string;
     hiddenFromOthers?: boolean;
+
+    groupId?: string;
 }
 
 export interface Image extends ImageDef, Id {
     x: number;
     y: number;
 
-    lastUser?: string;
+    lastUserId?: string;
 }
 
