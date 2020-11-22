@@ -35,7 +35,7 @@ import { NzTypographyModule } from 'ng-zorro-antd/typography';
 import { NzSpaceModule } from 'ng-zorro-antd/space';
 import { NzResultModule } from 'ng-zorro-antd/result';
 import { NzListModule } from 'ng-zorro-antd/list';
-import { NameGuard } from './guards/name.guard';
+import { SocketIdGuard } from './guards/socket-id-guard.service';
 import { ConnectedGuard } from './guards/connected.guard';
 import { HasCollectionGuard } from './guards/has-collection.guard';
 import { IconDefinition } from '@ant-design/icons-angular';
@@ -95,7 +95,7 @@ const icons: IconDefinition[] = [RightOutline, SendOutline, PauseCircleTwoTone, 
     CollectionService,
     { provide: NZ_I18N, useValue: fr_FR },
 
-    NameGuard,
+    SocketIdGuard,
     ConnectedGuard,
     HasCollectionGuard
   ],

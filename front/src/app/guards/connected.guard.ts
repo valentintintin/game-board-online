@@ -7,7 +7,7 @@ import { WebsocketService } from '../services/websocket.service';
 @Injectable()
 export class ConnectedGuard implements CanActivate {
 
-  constructor(private websocketService: WebsocketService, private router: Router) {
+  constructor(protected websocketService: WebsocketService, protected router: Router) {
   }
 
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean> {
@@ -17,6 +17,8 @@ export class ConnectedGuard implements CanActivate {
           this.router.navigate(['status/network-error'], {
             replaceUrl: true
           });
+
+          throw new Error('Network error');
         }
       })
     );

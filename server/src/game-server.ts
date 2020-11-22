@@ -45,7 +45,7 @@ export class GameServer {
 
                 let user = null;
                 try {
-                    user = Utils.removeById(this.storageService.wsStorage.users, socket.id)
+                    user = Utils.removeBy(this.storageService.wsStorage.users, u => u.socketId === socket.id)
                 } catch (e) {
                 }
 
@@ -99,7 +99,7 @@ export class GameServer {
             socket.on('chatEvent', (event: WsEvent<ChatMessage>) => {
                 console.log(socket.id, 'chatEvent', event);
 
-                event.data.user = Utils.getById(this.storageService.wsStorage.users, socket.id);
+                event.data.user = Utils.getBy(this.storageService.wsStorage.users, u => u.socketId === socket.id);
                 event.data.date = new Date();
 
                 this.storageService.wsStorage.chatMessages.unshift(event.data);
@@ -114,24 +114,28 @@ export class GameServer {
                     return;
                 }
 
-                event.data.guid = socket.id;
+                event.data.socketId = socket.id;
 
                 Utils.replaceOrAddById(this.storageService.wsStorage.users, event.data);
 
-                if (event.name === 'add') {
-                    this.sendInitialData(socket);
-                }
+                this.sendAll('userEvent', event, socket.id);
 
-                this.sendAll('userEvent', event);
+                if (event.name === 'set') {
+                    event.name = 'me';
+                    this.send(socket, 'userEvent', event);
+                    setTimeout(_ => this.sendInitialData(socket), 250);
+                }
             });
 
             socket.on('imageEvent', (event: WsEvent<Image>) => {
                 console.log(socket.id, 'imageEvent', event);
 
-                try {
-                    event.data.lastUser = Utils.getById(this.storageService.wsStorage.users, socket.id);
-                } catch (e) {
-                    console.error(e);
+                if (!event.data.lastUser) {
+                    try {
+                        event.data.lastUser = Utils.getBy(this.storageService.wsStorage.users, u => u.socketId === socket.id)?.guid;
+                    } catch (e) {
+                        console.error(e);
+                    }
                 }
 
                 if (event.name === 'delete') {
@@ -151,7 +155,7 @@ export class GameServer {
     public sendAll(eventName, data, excludeId: string = null): void {
         for (const user of this.storageService.wsStorage.users) {
             if (user.guid !== excludeId) {
-                this.send(Utils.getBy(this.clients, c => c.id === user.guid), eventName, data);
+                this.send(Utils.getBy(this.clients, c => c.id === user.socketId), eventName, data);
             }
         }
     }

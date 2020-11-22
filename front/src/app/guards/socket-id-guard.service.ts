@@ -5,21 +5,23 @@ import { UserService } from '../services/user.service';
 import { map, tap } from 'rxjs/operators';
 
 @Injectable()
-export class NameGuard implements CanActivate {
+export class SocketIdGuard implements CanActivate {
 
   constructor(private userService: UserService, private router: Router) {
   }
 
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean> {
-    return this.userService.name$.pipe(
-      map(name => !!name),
-      tap(result => {
-        if (!result) {
-          this.router.navigate([''], {
-            replaceUrl: true
-          });
-        }
-      })
-    );
+    return this.userService.currentUser$.pipe(
+        map(user => Boolean(user?.socketId)),
+        tap(result => {
+          if (!result) {
+            this.router.navigate([''], {
+              replaceUrl: true
+            });
+
+            throw new Error('User not connected');
+          }
+        })
+      );
   }
 }

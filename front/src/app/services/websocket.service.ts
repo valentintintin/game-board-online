@@ -52,6 +52,7 @@ export class WebsocketService {
           rotatable: image.rotatable,
           imageBackUrl: image.imageBackUrl,
           showBack: image.showBack,
+          shouldTurnOnce: image.shouldTurnOnce,
           hiddenFromOthers: image.hiddenFromOthers,
           changeIndex: image.changeIndex,
           lastUser: image.lastUser,
@@ -62,12 +63,10 @@ export class WebsocketService {
     }, 10);
   }
 
-  public sendUserEvent(eventName: string, name: string): void {
+  public sendUserEvent(user: User): void {
     const data: WsEvent<User> = {
-      name: eventName,
-      data: {
-        name
-      } as User
+      name: user ? 'set' : 'delete',
+      data: user
     };
     console.log('userEvent', data);
     this.socket.emit('userEvent', data);
@@ -110,22 +109,22 @@ export class WebsocketService {
   }
 
   public getInitialCollections(): Observable<Collection[]> {
-    return this.getInitialDatas().pipe(map((d: WsEvent<Initial>) => d.data.storage.collections));
+    return this.getInitialDatas().pipe( map((d: WsEvent<Initial>) => d.data.storage.collections));
   }
 
   public getCurrentCollectionId(): Observable<string> {
     return this.getInitialDatas().pipe(map((d: WsEvent<Initial>) => d.data.wsStorage.currentCollectionId));
   }
 
-  public getInitialDrawing(): Observable<Image[]> {
-    return this.getInitialDatas().pipe(map((d: WsEvent<Initial>) => d.data.wsStorage.drawing));
-  }
-
   public getInitialUsers(): Observable<User[]> {
     return this.getInitialDatas().pipe(map((d: WsEvent<Initial>) => d.data.wsStorage.users));
   }
 
+  public getInitialDrawing(): Observable<Image[]> {
+    return this.getInitialDatas().pipe(map((d: WsEvent<Initial>) => d.data.wsStorage.drawing));
+  }
+
   public getInitialChatMessages(): Observable<ChatMessage[]> {
-    return this.getInitialDatas().pipe(map((d: WsEvent<Initial>) => d.data.wsStorage.chatMessages));
+    return this.getInitialDatas().pipe( map((d: WsEvent<Initial>) => d.data.wsStorage.chatMessages));
   }
 }
