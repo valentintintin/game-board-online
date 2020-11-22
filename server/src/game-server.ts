@@ -130,7 +130,7 @@ export class GameServer {
             socket.on('imageEvent', (event: WsEvent<Image>) => {
                 console.log(socket.id, 'imageEvent', event);
 
-                if (!event.data.lastUser) {
+                if (!event.data.lastUser || !event.data.hiddenFromOthers) {
                     try {
                         event.data.lastUser = Utils.getBy(this.storageService.wsStorage.users, u => u.socketId === socket.id)?.guid;
                     } catch (e) {

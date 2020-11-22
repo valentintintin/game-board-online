@@ -5,7 +5,7 @@
 
   <nz-list-empty nzNoResult="Aucun joueur connecté" *ngIf="(userService.users$ | async).length === 0"></nz-list-empty>
 
-  <li nz-list-item *ngFor="let user of userService.users$ | async" nzNoFlex>
-    {{ user.name }} <span *ngIf="userService.isMe(user)">(moi)</span>
+  <li nz-list-item *ngFor="let user of userService.users$ | async" nzNoFlex [class.bold]="userService.isMe(user?.guid)">
+    {{ user.name }}
   </li>
 </ul>
