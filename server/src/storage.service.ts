@@ -3,6 +3,8 @@ import { Config } from 'node-json-db/dist/lib/JsonDBConfig';
 import { Storage } from '../../common/models/storage';
 import { WsStorage } from '../../common/models/ws-storage';
 import { Utils } from '../../common/utils';
+import { ImageUtils } from '../../common/models/image';
+import fs = require('fs');
 
 export class StorageService {
     public readonly db = new JsonDB(new Config('database', true, true, '/'));
@@ -21,11 +23,26 @@ export class StorageService {
             this.storage.collections = [];
         }
 
-        this.storage.collections.forEach(c => {
-            c.guid = Utils.hashCode(c.name).toString();
-            c.initial.forEach(i => {
-                i.guid = Utils.hashCode(i.name).toString();
-                i.images.forEach(ii => ii.groupId = i.guid);
+        this.storage.collections.forEach(collection => {
+            collection.guid = Utils.hashCode(collection.name).toString();
+
+            collection.imageUrl.forEach(imageUrl => this.testAssetExist(imageUrl));
+            collection.images?.forEach(image => this.testAssetExist(image.imageUrl));
+
+            collection.initial?.forEach(imagesInitial => {
+                imagesInitial.guid = Utils.hashCode(imagesInitial.name).toString();
+                imagesInitial.images.forEach(image => {
+                    image.groupId = imagesInitial.guid;
+
+                    if (imagesInitial.allImageOptions) {
+                        ImageUtils.assignValueToImage(image, imagesInitial.allImageOptions);
+                    }
+
+                    this.testAssetExist(image.imageUrl);
+                    if (image.imageBackUrl) {
+                        this.testAssetExist(image.imageBackUrl);
+                    }
+                });
             });
         });
 
@@ -52,5 +69,12 @@ export class StorageService {
         delete this.wsStorage.users;
         this.wsDb.push('/', this.wsStorage, true);
         console.log('Sauvegarde de l\'état effectué');
+    }
+
+    public testAssetExist(filePath: string): void {
+        const path = __dirname + '/..' + filePath.replace('/assets', '');
+        if (!fs.existsSync(path)) {
+            throw new Error(path + ' n\'existe pas');
+        }
     }
 }

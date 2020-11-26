@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Image } from '../../../../common/models/image';
+import { Image, ImageUtils } from '../../../../common/models/image';
 import { Socket } from 'ngx-socket-io';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -39,27 +39,9 @@ export class WebsocketService {
     setTimeout(() => {
       const data: WsEvent<Image> = {
         name: eventName,
-        data: {
-          guid: image.guid,
-          groupId: image.groupId,
-          imageUrl: image.imageUrl,
-          x: image.x,
-          y: image.y,
-          width: image.width,
-          height: image.height,
-          rotation: image.rotation,
-          deletable: image.deletable,
-          movable: image.movable,
-          rotatable: image.rotatable,
-          imageBackUrl: image.imageBackUrl,
-          showBack: image.showBack,
-          shouldTurnOnce: image.shouldTurnOnce,
-          hiddenFromOthers: image.hiddenFromOthers,
-          changeIndex: image.changeIndex,
-          lastUserId: image.lastUserId,
-        } as Image
+        data: ImageUtils.getValueImage(image)
       };
-      console.log(eventName, data, image);
+      console.log(eventName, data);
       this.socket.emit('imageEvent', data);
     }, 10);
   }

@@ -1,6 +1,6 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { DrawingService } from '../../../../services/drawing.service';
-import { ImageDef } from '../../../../../../../common/models/image';
+import { Image } from '../../../../../../../common/models/image';
 
 @Component({
   selector: 'app-list-image',
@@ -9,14 +9,14 @@ import { ImageDef } from '../../../../../../../common/models/image';
 })
 export class ListImageComponent implements OnInit {
 
-  @Input() images: ImageDef[];
+  @Input() images:  Image[];
 
   constructor(private drawingService: DrawingService) { }
 
   ngOnInit(): void {
   }
 
-  public addImageToCanvas(image: ImageDef): void {
+  public addImageToCanvas(image:  Image): void {
     this.drawingService.addImage(image);
   }
 }

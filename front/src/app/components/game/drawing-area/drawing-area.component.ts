@@ -14,6 +14,10 @@ export class DrawingAreaComponent implements AfterViewInit {
   constructor(public drawingService: DrawingService) { }
 
   ngAfterViewInit(): void {
+    document.getElementById('canvas').addEventListener("contextmenu", function (e) {
+      e.preventDefault();
+    }, false);
+
     this.drawingService.createCanvas('canvas', this.menu);
   }
 }

@@ -8,13 +8,14 @@ export interface ImageCollection extends Id {
     canReset?: boolean;
     resetOnlyVisible?: boolean;
     canRemoveNotUsed?: boolean;
+    allImageOptions?: ImageDef;
 }
 
 export interface Collection extends Id {
     name: string;
     imageUrl?: string[];
-    images: ImageDef[];
-    initial: ImageCollection[];
+    images?:  Image[];
+    initial?: ImageCollection[];
 }
 
 export interface Storage {
