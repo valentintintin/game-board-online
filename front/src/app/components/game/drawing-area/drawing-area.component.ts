@@ -10,14 +10,17 @@ import { NzDropdownMenuComponent } from 'ng-zorro-antd/dropdown';
 export class DrawingAreaComponent implements AfterViewInit {
 
   @ViewChild('menu') menu: NzDropdownMenuComponent;
+  private canvas: HTMLCanvasElement;
 
   constructor(public drawingService: DrawingService) { }
 
   ngAfterViewInit(): void {
-    document.getElementById('canvas').addEventListener("contextmenu", function (e) {
+    this.canvas = document.getElementById('canvas') as HTMLCanvasElement;
+
+    this.canvas.addEventListener("contextmenu", function (e) {
       e.preventDefault();
     }, false);
 
-    this.drawingService.createCanvas('canvas', this.menu);
+    this.drawingService.createCanvas(this.canvas, this.menu);
   }
 }

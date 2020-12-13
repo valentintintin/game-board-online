@@ -1,9 +1,7 @@
 import { Id } from './id';
+import { Pos } from './pos';
 
-export interface ImageDef {
-    x: number;
-    y: number;
-
+export interface ImageDef extends Pos {
     imageUrl: string;
 
     imageBackUrl?: string;

@@ -8,7 +8,7 @@
         {{ imageCollection.resetOnlyVisible ? 'Mélanger les ' + imageCollection.name + ' piochées' : 'Mélanger les ' + imageCollection.name }}
       </button>
       <button *ngIf="imageCollection.canRemoveNotUsed" nz-button type="button" (click)="collectionService.removeInitialNotUsed(imageCollection)">
-        Enlever le surplus de {{ imageCollection.name }}
+        Enlever les {{ imageCollection.name }}
       </button>
     </div>
 
