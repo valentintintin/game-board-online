@@ -55,17 +55,40 @@ export class DrawingService {
   }
 
   public createCanvas(canvas: HTMLCanvasElement, dropDownMenu: NzDropdownMenuComponent) {
+    this.dropDownMenu = dropDownMenu;
     this.canvas = oCanvas.create({
       canvas: canvas
     });
-
     this.canvasContext2d = canvas.getContext("2d");
 
     this.resetZoomPanCanvas();
 
-    this.dropDownMenu = dropDownMenu;
+    canvas.addEventListener("contextmenu", event => {
+      event.preventDefault();
+    }, false);
 
-    console.log(this.canvas);
+    canvas.addEventListener("wheel", (event: WheelEvent) => {
+      this.zoomCanvas(event.deltaY < 0 ? 'in' : 'out');
+    });
+
+    let panStarted = false;
+    canvas.addEventListener('mousedown', (event: MouseEvent) => {
+      panStarted = true;
+    });
+    canvas.addEventListener('mousemove', (event: MouseEvent) => {
+      if (panStarted) {
+        this.panPosition.x -= event.movementX;
+        this.panPosition.y -= event.movementY;
+
+        this.redraw();
+      }
+    });
+    canvas.addEventListener('mouseup', (event: MouseEvent) => {
+      panStarted = false;
+    });
+    canvas.addEventListener('mouseleave', (event: MouseEvent) => {
+      panStarted = false;
+    });
   }
 
   public addImage(imageDef: Image): ImageFn {
@@ -130,11 +153,21 @@ export class DrawingService {
 
     if (this.canDoActionOnImage(image)) {
       image.bind('click', event => {
+        console.log(ImageUtils.getValueImage(image));
+
         if (event.which === 2) { // right
           this.showDropDown(image, event);
         } else if (event.which === 3 && this.canDeleteImage(image)) { // middle
           this.deleteImage(image);
         }
+      }).bind("mouseenter", () => {
+        if (this.canMoveImage(image)) {
+          this.canvas.mouse.cursor('move');
+        } else {
+          this.canvas.mouse.cursor('pointer');
+        }
+      }).bind("mouseleave", () => {
+        this.canvas.mouse.cursor('default');
       });
 
       if (this.canMoveImage(image)) {
@@ -155,11 +188,15 @@ export class DrawingService {
       image.bind('dbltap', event => {
         this.showDropDown(image, event);
       });
+    } else {
+      image.bind('click', event => {
+        console.log(ImageUtils.getValueImage(image));
+      }).bind("mouseenter", () => {
+        this.canvas.mouse.cursor('not-allowed ');
+      }).bind("mouseleave", () => {
+        this.canvas.mouse.cursor('default');
+      });
     }
-
-    image.bind('click', _ => {
-      console.log(ImageUtils.getValueImage(image));
-    });
 
     this.canvas.addChild(image);
 
