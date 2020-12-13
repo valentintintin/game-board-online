@@ -455,7 +455,7 @@ export class DrawingService {
       let pos = null;
       if (event.originalEvent instanceof MouseEvent) {
         pos = event.originalEvent;
-      } else if (event.or() instanceof TouchEvent) {
+      } else if (event.originalEvent instanceof TouchEvent) {
         pos = event.originalEvent.touches[0] || event.originalEvent.changedTouches[0];
       }
       this.nzContextMenuService.create({
