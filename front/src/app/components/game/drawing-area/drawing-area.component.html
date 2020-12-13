@@ -38,13 +38,28 @@
 
 <nz-dropdown-menu #menu="nzDropdownMenu">
   <ul nz-menu nzSelectable>
-    <li nz-menu-item *ngIf="drawingService.imageDropDown?.rotatable" (click)="drawingService.rotateImage(drawingService.imageDropDown, 'left')">Pivoter à gauche</li>
-    <li nz-menu-item *ngIf="drawingService.imageDropDown?.rotatable" (click)="drawingService.rotateImage(drawingService.imageDropDown, 'right')">Pivoter à droite</li>
+    <li nz-menu-item *ngIf="drawingService.imageDropDown?.rotatable" (click)="drawingService.rotateImage(drawingService.imageDropDown, 'left')">
+      Pivoter à gauche
+    </li>
+
+    <li nz-menu-item *ngIf="drawingService.imageDropDown?.rotatable" (click)="drawingService.rotateImage(drawingService.imageDropDown, 'right')">
+      Pivoter à droite
+    </li>
+
     <li nz-menu-item *ngIf="drawingService.imageDropDown?.imageBackUrl" (click)="drawingService.turnImage(drawingService.imageDropDown)">
       {{ drawingService.imageDropDown?.showBack ? 'Dévoiler' + (drawingService.imageDropDown?.hiddenFromOthers ? ' (seulement moi)' : '') : 'Cacher' }}
     </li>
-    <li nz-menu-item *ngIf="drawingService.canShowToAllImage(drawingService.imageDropDown)" (click)="drawingService.showImageToAll(drawingService.imageDropDown)">Dévoiler (out le monde)</li>
-    <li nz-menu-item *ngIf="drawingService.canDeleteImage(drawingService.imageDropDown)" (click)="drawingService.deleteImage(drawingService.imageDropDown)">Supprimer</li>
-    <li nz-menu-item (click)="drawingService.openInNewTab(drawingService.imageDropDown)">Zoomer dans un nouvel onglet</li>
+
+    <li nz-menu-item *ngIf="drawingService.canShowToAllImage(drawingService.imageDropDown)" (click)="drawingService.showImageToAll(drawingService.imageDropDown)">
+      Dévoiler (tout le monde)
+    </li>
+
+    <li nz-menu-item *ngIf="drawingService.canDeleteImage(drawingService.imageDropDown)" (click)="drawingService.deleteImage(drawingService.imageDropDown)">
+      Supprimer
+    </li>
+
+    <li nz-menu-item (click)="drawingService.openInNewTab(drawingService.imageDropDown)">
+      Zoomer dans un nouvel onglet
+    </li>
   </ul>
 </nz-dropdown-menu>

@@ -46,7 +46,7 @@ export class DrawingService {
         this.deleteImage(this.drawingDatas[0], false);
       }
 
-      this.redraw();
+      this.resetZoomPanCanvas();
 
       setTimeout(_ => {
         datas.forEach(d => this.addOrSetImage(d));
