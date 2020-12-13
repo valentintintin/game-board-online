@@ -42,6 +42,7 @@ export class CollectionService {
 
   public resetInitial(imageCollection: ImageCollection): void {
     console.log(imageCollection);
+
     if (imageCollection.resetOnlyVisible) {
       const imagesToShuffle = this.drawingService.getImagesByGroupId(imageCollection.guid, 'touched');
       console.log(imagesToShuffle);

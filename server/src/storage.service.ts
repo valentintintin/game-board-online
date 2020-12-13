@@ -31,6 +31,29 @@ export class StorageService {
 
             collection.initial?.forEach(imagesInitial => {
                 imagesInitial.guid = Utils.hashCode(imagesInitial.name).toString();
+
+                if (imagesInitial.schemaPosition && imagesInitial.allImageOptions) {
+                    let imageI = 0;
+                    let y = imagesInitial.schemaPosition.y;
+
+                    for (const row of imagesInitial.schemaPosition.schema) {
+                        let x = imagesInitial.schemaPosition.x;
+
+                        for (let rowX of row) {
+                            if (rowX !== ' ') {
+                                imagesInitial.images[imageI].x = x;
+                                imagesInitial.images[imageI].y = y;
+
+                                imageI++;
+                            }
+
+                            x += imagesInitial.allImageOptions.width + (imagesInitial.schemaPosition?.offsetX ?? 0);
+                        }
+
+                        y += imagesInitial.allImageOptions.height + (imagesInitial.schemaPosition?.offsetY ?? 0);
+                    }
+                }
+
                 imagesInitial.images.forEach(image => {
                     image.groupId = imagesInitial.guid;
 
