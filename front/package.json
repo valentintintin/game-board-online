@@ -1,6 +1,6 @@
 {
   "name": "game-board-online-front",
-  "version": "1.1.1",
+  "version": "1.1.3",
   "scripts": {
     "ng": "ng",
     "start": "ng serve --disable-host-check --host 0.0.0.0",
