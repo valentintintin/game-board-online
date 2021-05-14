@@ -47,6 +47,7 @@ import {
   WarningTwoTone
 } from '@ant-design/icons-angular/icons';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzNotificationModule } from 'ng-zorro-antd/notification';
 
 registerLocaleData(fr);
 
@@ -66,27 +67,28 @@ const icons: IconDefinition[] = [RightOutline, SendOutline, PauseCircleTwoTone, 
     GameComponent,
     StatusComponent,
   ],
-    imports: [
-        BrowserModule,
-        AppRoutingModule,
-        ReactiveFormsModule,
-        NgxLocalStorageModule.forRoot(),
-        SocketIoModule.forRoot({
-            url: environment.serverUrl
-        }),
-        FormsModule,
-        HttpClientModule,
-        BrowserAnimationsModule,
-        NzLayoutModule,
-        NzIconModule.forRoot(icons),
-        NzButtonModule,
-        NzInputModule,
-        NzTypographyModule,
-        NzSpaceModule,
-        NzResultModule,
-        NzListModule,
-        NzDropDownModule
-    ],
+  imports: [
+    BrowserModule,
+    AppRoutingModule,
+    ReactiveFormsModule,
+    NgxLocalStorageModule.forRoot(),
+    SocketIoModule.forRoot({
+      url: environment.serverUrl
+    }),
+    FormsModule,
+    HttpClientModule,
+    BrowserAnimationsModule,
+    NzLayoutModule,
+    NzIconModule.forRoot(icons),
+    NzButtonModule,
+    NzInputModule,
+    NzTypographyModule,
+    NzSpaceModule,
+    NzResultModule,
+    NzListModule,
+    NzDropDownModule,
+    NzNotificationModule
+  ],
   providers: [
     WebsocketService,
     DrawingService,

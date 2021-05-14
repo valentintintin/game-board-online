@@ -10,6 +10,8 @@ import { Initial } from '../../common/models/initial';
 import { User } from '../../common/models/user';
 import { Image } from '../../common/models/image';
 import { ChatMessage } from '../../common/models/chatMessage';
+import { Pos } from '../../common/models/pos';
+import { Pointer } from '../../common/models/pointer';
 
 export class GameServer {
     public readonly storageService = new StorageService();
@@ -33,6 +35,8 @@ export class GameServer {
         this.app.get('*', function (req, res) {
             res.redirect('/');
         });
+
+        // setInterval(() => this.sendAllInitialData(), 60 * 1000);
 
         this.server.listen(config.API_PORT, () => console.log('Ready on port ' + config.API_PORT + ' !'));
 
@@ -63,6 +67,10 @@ export class GameServer {
                 console.log(socket.id, 'collectionEvent', event);
 
                 if (event.name === 'delete') {
+                    for (const user of this.storageService.wsStorage.users) {
+                        user.shouldPlay = false;
+                    }
+
                     this.storageService.wsStorage.currentCollectionId = null;
                     this.storageService.wsStorage.drawing.length = 0;
                     this.storageService.wsStorage.chatMessages.length = 0;
@@ -107,24 +115,55 @@ export class GameServer {
                 this.sendAll('chatEvent', event);
             });
 
+            socket.on('pointerEvent', (event: WsEvent<Pos>) => {
+                console.log(socket.id, 'pointerEvent', event);
+
+                const user = Utils.getBy(this.storageService.wsStorage.users, u => u.socketId === socket.id);
+
+                (event.data as Pointer).color = user.color;
+
+                this.sendAll('pointerEvent', event, user.socketId);
+            });
+
             socket.on('userEvent', (event: WsEvent<User>) => {
                 console.log(socket.id, 'userEvent', event);
 
-                if (!event.data.name?.trim()) {
+                if (!event.data.name?.trim() || !event.data.color?.trim()) {
                     return;
                 }
 
                 event.data.socketId = socket.id;
 
-                Utils.replaceOrAddById(this.storageService.wsStorage.users, event.data);
+                switch (event.name) {
+                    case 'set':
+                        Utils.replaceOrAddById(this.storageService.wsStorage.users, event.data);
 
-                this.sendAll('userEvent', event, socket.id);
+                        this.send(socket, 'userEvent', {
+                            name: 'me',
+                            data: event.data
+                        });
 
-                if (event.name === 'set') {
-                    event.name = 'me';
-                    this.send(socket, 'userEvent', event);
-                    setTimeout(_ => this.sendInitialData(socket), 250);
+                        setTimeout(_ => this.sendInitialData(socket), 250);
+                        break;
+                    case 'shouldPlay':
+                        for (const user of this.storageService.wsStorage.users) {
+                            const shouldPlayUser = user.guid === event.data.guid;
+                            user.shouldPlay = shouldPlayUser;
+
+                            Utils.replaceOrAddById(this.storageService.wsStorage.users, user);
+
+                            if (shouldPlayUser && socket.id !== user.socketId) {
+                                this.sendInitialDataToUser(user);
+                                this.sendToUser(user, 'userEvent', {
+                                    name: 'me',
+                                    data: user
+                                });
+                            }
+                        }
+                        break;
                 }
+
+                this.sendUsersToAll();
             });
 
             socket.on('imageEvent', (event: WsEvent<Image>) => {
@@ -147,9 +186,17 @@ export class GameServer {
     public sendAll(eventName, data, excludeId: string = null): void {
         for (const user of this.storageService.wsStorage.users) {
             if (user.socketId !== excludeId) {
-                this.send(Utils.getBy(this.clients, c => c.id === user.socketId), eventName, data);
+                try {
+                    this.send(Utils.getBy(this.clients, c => c.id === user.socketId), eventName, data);
+                } catch (e) {
+                    console.error(e);
+                }
             }
         }
+    }
+
+    public sendToUser(user: User, eventName: string, data: WsEvent<any>): void {
+        this.send(Utils.getBy(this.clients, c => c.id === user.socketId), eventName, data);
     }
 
     public send(socket: Socket, eventName: string, data: WsEvent<any>): void {
@@ -161,8 +208,19 @@ export class GameServer {
         this.send(socket, 'allDatas', this.getInitalDataEvent());
     }
 
+    public sendInitialDataToUser(user: User): void {
+        this.sendToUser(user, 'allDatas', this.getInitalDataEvent());
+    }
+
     public sendAllInitialData(): void {
         this.sendAll('allDatas', this.getInitalDataEvent());
+    }
+
+    public sendUsersToAll(): void {
+        this.sendAll('allUsers', {
+            name: 'allUsers',
+            data: this.storageService.wsStorage.users
+        });
     }
 
     public saveBeforeExit(): void {

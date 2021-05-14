@@ -34,7 +34,7 @@
   </button>
 </div>
 
-<canvas id="canvas" width="1600" height="1024"></canvas>
+<canvas id="canvas" width="1600" height="1600"></canvas>
 
 <nz-dropdown-menu #menu="nzDropdownMenu">
   <ul nz-menu nzSelectable>
@@ -44,6 +44,10 @@
 
     <li nz-menu-item *ngIf="drawingService.imageDropDown?.rotatable" (click)="drawingService.rotateImage(drawingService.imageDropDown, 'right')">
       Pivoter à droite
+    </li>
+
+    <li nz-menu-item *ngIf="drawingService.imageDropDown?.rotatable" (click)="drawingService.rotateImage(drawingService.imageDropDown, '180')">
+      Pivoter de 180°
     </li>
 
     <li nz-menu-item *ngIf="drawingService.imageDropDown?.imageBackUrl" (click)="drawingService.turnImage(drawingService.imageDropDown)">

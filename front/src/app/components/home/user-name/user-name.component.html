@@ -1,7 +1,15 @@
 <form #ngForm="ngForm" [formGroup]="form" (ngSubmit)="changeName()">
-  <label for="name">Ton nom :</label>
-  <div id="input-container">
-    <input type="text" id="name" formControlName="name" nz-input placeholder="Votre prénom" nzSize="large" />
+  <div class="input-container">
+    <label for="name">Prénom :</label>
+    <input type="text" id="name" formControlName="name" nz-input placeholder="Prénom" nzSize="large" />
+  </div>
+
+  <div class="input-container">
+    <label for="name">Couleur :</label>
+    <input type="color" id="color" formControlName="color" nz-input placeholder="Couleur" nzSize="large" />
+  </div>
+
+  <div class="submit">
     <button type="submit" [disabled]="form.invalid" nz-button nzType="primary" nzSize="large">
       Se connecter<i nz-icon nzType="right" nzTheme="outline"></i>
     </button>

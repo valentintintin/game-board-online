@@ -1,18 +1,17 @@
 form {
-  display: inline-block;
   text-align: left;
 
   label {
-    font-size: 3em;
-    display: inline-block;
-    margin-bottom: 10px;
+    font-size: 2em;
   }
 
-  #input-container {
-    display: flex;
+  input[type="color"] {
+    width: 70px;
+    margin-left: 10px;
+  }
 
-    button {
-      margin-left: 20px;
-    }
+  .submit {
+    text-align: center;
+    margin-top: 20px;
   }
 }

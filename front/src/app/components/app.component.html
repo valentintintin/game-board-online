@@ -11,7 +11,7 @@
     </div>
 
     <div class="hide-lt-lg">
-      Mon nom :&nbsp;<strong>{{ (userService.currentUser$ | async) ? (userService.currentUser$ | async).name : 'aucun' }}</strong>
+      Mon nom :&nbsp;<strong [style.color]="(userService.currentUser$ | async)?.color">{{ (userService.currentUser$ | async) ? (userService.currentUser$ | async).name : 'aucun' }}</strong>
     </div>
   </nz-header>
 

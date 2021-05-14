@@ -9,6 +9,8 @@ import { ChatMessage } from '../../../../common/models/chatMessage';
 import { Initial } from '../../../../common/models/initial';
 import { Collection } from '../../../../common/models/storage';
 import { Router } from '@angular/router';
+import { Pos } from '../../../../common/models/pos';
+import { Pointer } from '../../../../common/models/pointer';
 
 @Injectable({
   providedIn: 'root'
@@ -46,9 +48,9 @@ export class WebsocketService {
     }, 10);
   }
 
-  public sendUserEvent(user: User): void {
+  public sendUserEvent(user: User, event: 'set' | 'shouldPlay'): void {
     const data: WsEvent<User> = {
-      name: user ? 'set' : 'delete',
+      name: event,
       data: user
     };
     console.log('userEvent', data);
@@ -66,6 +68,18 @@ export class WebsocketService {
     this.socket.emit('chatEvent', data);
   }
 
+  public sendPointerEvent(x: number, y: number): void {
+    const data: WsEvent<Pos> = {
+      name: 'pointerEvent',
+      data: {
+        x: x,
+        y: y
+      } as Pos
+    };
+    console.log('pointerEvent', data);
+    this.socket.emit('pointerEvent', data);
+  }
+
   public sendCollectionEvent(collection?: Collection) {
     const data: WsEvent<string> = {
       name: collection ? 'set' : 'delete',
@@ -77,6 +91,10 @@ export class WebsocketService {
 
   public getImageEvent(): Observable<WsEvent<Image>> {
     return this.socket.fromEvent('imageEvent');
+  }
+
+  public getPointerEvent(): Observable<Pointer> {
+    return this.socket.fromEvent('pointerEvent').pipe(map((d: WsEvent<Pointer>) => d.data));
   }
 
   public getUserEvent(): Observable<WsEvent<User>> {
@@ -92,7 +110,7 @@ export class WebsocketService {
   }
 
   public getInitialCollections(): Observable<Collection[]> {
-    return this.getInitialDatas().pipe( map((d: WsEvent<Initial>) => d.data.storage.collections));
+    return this.getInitialDatas().pipe(map((d: WsEvent<Initial>) => d.data.storage.collections));
   }
 
   public getCurrentCollectionId(): Observable<string> {
@@ -101,6 +119,10 @@ export class WebsocketService {
 
   public getInitialUsers(): Observable<User[]> {
     return this.getInitialDatas().pipe(map((d: WsEvent<Initial>) => d.data.wsStorage.users));
+  }
+
+  public getAllUsers(): Observable<User[]> {
+    return this.socket.fromEvent('allUsers').pipe(map((d: WsEvent<User[]>) => d.data));
   }
 
   public getInitialDrawing(): Observable<Image[]> {

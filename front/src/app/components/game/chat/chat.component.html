@@ -3,7 +3,7 @@
     <h3 nz-typography>Chat</h3>
   </nz-list-header>
 
-  <li nz-list-item *ngFor="let chat of chatService.messages$ | async" nzNoFlex>
+  <li nz-list-item *ngFor="let chat of chatService.messages$ | async" nzNoFlex [style.color]="chat.user.color">
     <strong>{{ chat.user.name }}</strong> à <i>{{ chat.date | date:'short' }}</i>
     <div class="message" [class.bold]="userService.isMe(chat.user.guid)">{{ chat.message }}</div>
   </li>

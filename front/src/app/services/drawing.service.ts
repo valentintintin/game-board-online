@@ -6,6 +6,7 @@ import { ImageFn } from '../models/imageFn';
 import { NzContextMenuService, NzDropdownMenuComponent } from 'ng-zorro-antd/dropdown';
 import { UserService } from './user.service';
 import { Pos } from '../../../../common/models/pos';
+import { Pointer } from '../../../../common/models/pointer';
 
 const oCanvas = require('ocanvas');
 
@@ -25,6 +26,7 @@ export class DrawingService {
   private canvasContext2d: CanvasRenderingContext2D;
 
   private drawingDatas: ImageFn[] = [];
+  private pointers: { ellipse, pointer: Pointer }[] = [];
   private dropDownMenu: NzDropdownMenuComponent;
 
   constructor(private websocketService: WebsocketService, private nzContextMenuService: NzContextMenuService,
@@ -51,7 +53,36 @@ export class DrawingService {
       setTimeout(_ => {
         datas.forEach(d => this.addOrSetImage(d));
       }, 10);
-    })
+    });
+
+    this.websocketService.getPointerEvent().subscribe(datas => {
+      console.log('pointEvent', datas);
+
+      try {
+        const pointer = Utils.removeBy(this.pointers, a => a.pointer.color === datas.color);
+        pointer.ellipse.remove(true);
+      } catch (e) {
+        // ignored
+      }
+
+      const ellipse = this.canvas.display.ellipse({
+        x: datas.x,
+        y: datas.y,
+        radius: 15,
+        fill: datas.color
+      });
+
+      ellipse.fadeOut('long', 'ease-in-out-cubic', () => {
+        ellipse.remove(true);
+      });
+
+      this.canvas.addChild(ellipse);
+
+      this.pointers.push({
+        pointer: datas,
+        ellipse: ellipse
+      });
+    });
   }
 
   public createCanvas(canvas: HTMLCanvasElement, dropDownMenu: NzDropdownMenuComponent) {
@@ -65,26 +96,40 @@ export class DrawingService {
 
     canvas.addEventListener("contextmenu", event => {
       event.preventDefault();
-    }, false);
+    });
 
     canvas.addEventListener("wheel", (event: WheelEvent) => {
-      this.zoomCanvas(event.deltaY < 0 ? 'in' : 'out');
+      if (event.shiftKey) {
+        this.zoomCanvas(event.deltaY < 0 ? 'in' : 'out');
+      }
+    });
+
+    canvas.addEventListener('touchend', (event: MouseEvent) => {
+      this.websocketService.sendPointerEvent(this.canvas.mouse.x, this.canvas.mouse.y);
     });
 
     let panStarted = false;
     canvas.addEventListener('mousedown', (event: MouseEvent) => {
-      panStarted = true;
+      if (event.shiftKey) {
+        panStarted = true;
+      }
     });
     canvas.addEventListener('mousemove', (event: MouseEvent) => {
       if (panStarted) {
-        this.panPosition.x -= event.movementX;
-        this.panPosition.y -= event.movementY;
+        if (this.currentScale < 1) {
+          this.panPosition.x += event.movementX;
+          this.panPosition.y += event.movementY;
+        } else {
+          this.panPosition.x -= event.movementX;
+          this.panPosition.y -= event.movementY;
+        }
 
         this.redraw();
       }
     });
     canvas.addEventListener('mouseup', (event: MouseEvent) => {
       panStarted = false;
+      this.websocketService.sendPointerEvent(this.canvas.mouse.x, this.canvas.mouse.y);
     });
     canvas.addEventListener('mouseleave', (event: MouseEvent) => {
       panStarted = false;
@@ -131,14 +176,14 @@ export class DrawingService {
 
     image = ImageUtils.assignValueToImage(image, imageDef);
 
-    Utils.replaceOrAddById(this.drawingDatas,image);
+    Utils.replaceOrAddById(this.drawingDatas, image);
 
     return image;
   }
 
   private createImage(imageDef: Image, x: number, y: number): ImageFn {
-    if (!imageDef.imageUrl ||imageDef.showBack && !imageDef.imageBackUrl) {
-      throw new Error('Creation ofimage impossible without url');
+    if (!imageDef.imageUrl || imageDef.showBack && !imageDef.imageBackUrl) {
+      throw new Error('Creation of image impossible without url');
     }
 
     const image: ImageFn = this.canvas.display.image({
@@ -146,19 +191,35 @@ export class DrawingService {
       y: y,
       rotation: imageDef.rotation ?? 0,
       origin: {x: "center", y: "center"},
-      image: this.shouldSeeImageFace(imageDef) ?imageDef.imageUrl : imageDef.imageBackUrl
+      image: this.shouldSeeImageFace(imageDef) ? imageDef.imageUrl : imageDef.imageBackUrl,
+      shadow: '2px 2px 2px 2px #000000',
     });
+
+    if (imageDef.lastUserId && imageDef.hiddenFromOthers) { // we've got a user which has seen the card (owner) but not others
+      const user = this.userService.getUserById(imageDef.lastUserId);
+
+      if (user) {
+        image.shadowColor = user.color;
+      }
+    }
+
     ImageUtils.assignValueToImage(image, imageDef);
-    image.guid = image.guid ?image.guid : Utils.uuidv4();
+    image.guid = image.guid ? image.guid : Utils.uuidv4();
 
     if (this.canDoActionOnImage(image)) {
       image.bind('click', event => {
         console.log(ImageUtils.getValueImage(image));
 
-        if (event.which === 2) { // right
+        if (event.button === 2) { // right
           this.showDropDown(image, event);
-        } else if (event.which === 3 && this.canDeleteImage(image)) { // middle
-          this.deleteImage(image);
+        } else if (event.button === 1) { // middle
+          if (this.canDeleteImage(image)) {
+            this.deleteImage(image);
+          } else if (this.canShowToAllImage(image)) {
+            this.showImageToAll(image);
+          } else {
+            this.turnImage(image);
+          }
         }
       }).bind("mouseenter", () => {
         if (this.canMoveImage(image)) {
@@ -180,8 +241,18 @@ export class DrawingService {
       }
 
       if (this.canTurnImage(image)) {
-        image.bind('dblclick', _ => {
-          this.turnImage(image);
+        image.bind('dblclick', event => {
+          if (!event.shiftKey) {
+            this.turnImage(image);
+          } else {
+            if (this.canDeleteImage(image)) {
+              this.deleteImage(image);
+            } else if (this.canShowToAllImage(image)) {
+              this.showImageToAll(image);
+            } else {
+              this.turnImage(image);
+            }
+          }
         });
       }
 
@@ -254,8 +325,13 @@ export class DrawingService {
     return this.canDoActionOnImage(image) && !image?.showBack;
   }
 
-  public rotateImage(image: ImageFn, way: 'left' | 'right'): void {
-    image.rotate((image.rotationStep ?? 22.5) * (way === 'left' ? -1 : 1));
+  public rotateImage(image: ImageFn, way: 'left' | 'right' | '180'): void {
+    if (way === '180') {
+      image.rotate(180);
+    } else {
+      image.rotate((image.rotationStep ?? 22.5) * (way === 'left' ? -1 : 1));
+    }
+
     this.redraw();
     this.websocketService.sendImageEvent('rotate', this.setLastUserImage(image));
 
@@ -299,7 +375,7 @@ export class DrawingService {
 
   public deleteImage(image: Image, sendEvent = true): void {
     try {
-      Utils.removeById(this.drawingDatas,image.guid).remove(true);
+      Utils.removeById(this.drawingDatas, image.guid).remove(true);
     } catch (e) {
       console.error(e);
     }
@@ -313,7 +389,7 @@ export class DrawingService {
   public openInNewTab(image: Image): void {
     const link = document.createElement('a');
     link.target = '_blank';
-    link.href = this.shouldSeeImageFace(image) ?image.imageUrl : image.imageBackUrl;
+    link.href = this.shouldSeeImageFace(image) ? image.imageUrl : image.imageBackUrl;
     link.click();
 
     this.imageDropDown = null;
@@ -327,7 +403,7 @@ export class DrawingService {
 
       this.currentScale += DrawingService.STEP_SCALE;
     } else {
-      if (this.currentScale <= 1) {
+      if (this.currentScale <= DrawingService.STEP_SCALE) {
         return;
       }
 
@@ -338,10 +414,6 @@ export class DrawingService {
   }
 
   public panCanvas(direction: 'left' | 'right' | 'up' | 'down'): void {
-    if (this.currentScale === 1) {
-      return;
-    }
-
     const widthScaled = this.canvas.width / this.currentScale;
     const heightScaled = this.canvas.height / this.currentScale;
 

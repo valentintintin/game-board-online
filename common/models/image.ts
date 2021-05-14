@@ -13,6 +13,9 @@ export interface ImageDef extends Pos {
     width: number;
     height: number;
 
+    shadow?: string;
+    shadowColor?: string;
+
     rotation?: number;
     rotationStep?: number;
 
