@@ -54,6 +54,10 @@
       {{ drawingService.imageDropDown?.showBack ? 'Dévoiler' + (drawingService.imageDropDown?.hiddenFromOthers ? ' (seulement moi)' : '') : 'Cacher' }}
     </li>
 
+    <li nz-menu-item *ngIf="drawingService.imageDropDown?.imageBackUrl && !drawingService.imageDropDown?.hiddenFromOthers " (click)="drawingService.hideImageToAll(drawingService.imageDropDown)">
+      Cacher (tout le monde)
+    </li>
+
     <li nz-menu-item *ngIf="drawingService.canShowToAllImage(drawingService.imageDropDown)" (click)="drawingService.showImageToAll(drawingService.imageDropDown)">
       Dévoiler (tout le monde)
     </li>

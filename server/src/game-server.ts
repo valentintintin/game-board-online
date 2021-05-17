@@ -63,6 +63,10 @@ export class GameServer {
                 Utils.removeBy(this.clients, c => c.id === socket.id);
             });
 
+            socket.on('needRefresh', _ => {
+                this.sendInitialData(socket);
+            });
+
             socket.on('collectionEvent', (event: WsEvent<string>) => {
                 console.log(socket.id, 'collectionEvent', event);
 
@@ -153,7 +157,6 @@ export class GameServer {
                             Utils.replaceOrAddById(this.storageService.wsStorage.users, user);
 
                             if (shouldPlayUser && socket.id !== user.socketId) {
-                                this.sendInitialDataToUser(user);
                                 this.sendToUser(user, 'userEvent', {
                                     name: 'me',
                                     data: user

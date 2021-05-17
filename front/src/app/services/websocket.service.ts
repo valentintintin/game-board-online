@@ -37,7 +37,7 @@ export class WebsocketService {
     return this._connected$.asObservable();
   }
 
-  public sendImageEvent(eventName: string, image: Image): void {
+  public sendImageEvent(eventName: 'add' | 'move' | 'rotate' | 'delete', image: Image): void {
     setTimeout(() => {
       const data: WsEvent<Image> = {
         name: eventName,
@@ -45,6 +45,13 @@ export class WebsocketService {
       };
       console.log(eventName, data);
       this.socket.emit('imageEvent', data);
+    }, 10);
+  }
+
+  public sendNeedRefresh(): void {
+    setTimeout(() => {
+      console.log('needRefresh');
+      this.socket.emit('needRefresh');
     }, 10);
   }
 

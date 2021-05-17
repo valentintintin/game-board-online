@@ -104,6 +104,10 @@ export class DrawingService {
       }
     });
 
+    canvas.addEventListener('touchstart', (event: MouseEvent) => {
+      this.websocketService.sendPointerEvent(this.canvas.mouse.x, this.canvas.mouse.y);
+    });
+
     canvas.addEventListener('touchend', (event: MouseEvent) => {
       this.websocketService.sendPointerEvent(this.canvas.mouse.x, this.canvas.mouse.y);
     });
@@ -113,6 +117,7 @@ export class DrawingService {
       if (event.shiftKey) {
         panStarted = true;
       }
+      this.websocketService.sendPointerEvent(this.canvas.mouse.x, this.canvas.mouse.y);
     });
     canvas.addEventListener('mousemove', (event: MouseEvent) => {
       if (panStarted) {
@@ -136,10 +141,17 @@ export class DrawingService {
     });
   }
 
-  public addImage(imageDef: Image): ImageFn {
-    const image = this.addOrSetImage(imageDef);
+  public addImage(imageDef: Image, withUser: boolean = true): ImageFn {
+    if (!withUser) {
+      imageDef.lastUserId = null;
+    }
 
-    this.websocketService.sendImageEvent('add', this.setLastUserImage(image));
+    let image = this.addOrSetImage(imageDef);
+    if (withUser) {
+      image = this.setLastUserImage(image);
+    }
+
+    this.websocketService.sendImageEvent('add', image);
 
     return image;
   }
@@ -354,6 +366,14 @@ export class DrawingService {
     image.showBack = true;
 
     this.turnImage(image);
+  }
+
+  public hideImageToAll(image: ImageFn): void {
+    image.hiddenFromOthers = true;
+    image.showBack = true;
+
+    this.deleteImage(image, true);
+    this.addImage(image, false);
   }
 
   public deleteImagesByGroupId(groupId: string, state: 'touched' | 'not_touched' = null): ImageFn[] {

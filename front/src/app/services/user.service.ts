@@ -57,7 +57,10 @@ export class UserService {
           this.router.navigate(['game']);
 
           if (event.data.shouldPlay) {
-            this.notification.info('Attention !', 'C\'est à toi de jouer !');
+            this.notification.info('Attention !', 'C\'est à toi de jouer !', {
+              nzDuration: 3000,
+              nzPauseOnHover: false
+            });
           }
 
           break;

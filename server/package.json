@@ -1,6 +1,6 @@
 {
   "name": "game-board-online-server",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "",
   "main": "src/index.ts",
   "dependencies": {
@@ -16,7 +16,7 @@
     "@types/socket.io": "^2.1.11"
   },
   "scripts": {
-    "run": "ts-node src/index.ts",
+    "start": "ts-node src/index.ts",
     "build": "tsc -p tsconfig.json"
   },
   "author": "",
