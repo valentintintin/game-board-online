@@ -1,0 +1,131 @@
+@GameBoardOnlineApi_HostAddress = http://localhost:5042
+@tokenUser1 = eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI4ZWE0NWRhMS1mZTVhLTQ0ZGMtOGE2Yy1lYTQzNTMzNWU5NDQiLCJuYW1lIjoiVmFsZW50aW4ifQ.qJiZaRuczdFbALPcev6iQqjsoMV11elYyI097_g6mf8
+@tokenUser2 = eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlM2M3ZGY5OC03NmQxLTQyMTQtYjA3MC1kZjNiNTMyMDZiMGEiLCJuYW1lIjoiSnVsaW5lIn0.duBGrQdBRDAaTecXEE5oNAc_9EAZh6jLexxAjbsLwpY
+@roomId = 4D4822CA-88B5-4271-83A6-A5C9D126A54A
+
+GRAPHQL {{GameBoardOnlineApi_HostAddress}}/graphql
+
+query {
+    login(name: "Juline")
+}
+
+###
+
+GRAPHQL {{GameBoardOnlineApi_HostAddress}}/graphql
+Authorization: Bearer {{tokenUser1}}
+
+query {
+    me {
+        id
+        name
+    }
+}
+
+###
+
+GRAPHQL {{GameBoardOnlineApi_HostAddress}}/graphql
+Authorization: Bearer {{tokenUser1}}
+
+mutation {
+    createRoom(name: "Test") {
+        id
+        users {
+            id
+            name        
+        }
+    }
+}
+
+###
+
+GRAPHQL {{GameBoardOnlineApi_HostAddress}}/graphql
+Authorization: Bearer {{tokenUser2}}
+
+mutation {
+    joinRoom(roomId: "{{roomId}}") {
+        id
+        users {
+            id
+            name        
+        }
+    }
+}
+
+###
+
+GRAPHQL {{GameBoardOnlineApi_HostAddress}}/graphql
+Authorization: Bearer {{tokenUser2}}
+
+query {
+    room(roomId: "{{roomId}}") {
+        id
+        currentGame {
+            id
+            createdAt
+            name
+            players {
+                id
+                name            
+            }
+        }
+    }
+}
+
+###
+
+GRAPHQL {{GameBoardOnlineApi_HostAddress}}/graphql
+Authorization: Bearer {{tokenUser1}}
+
+mutation {
+    codeNames {
+        create(roomId: "4D4822CA-88B5-4271-83A6-A5C9D126A54A") {
+            id
+            players {
+                name
+                isGuesser
+                team
+            }
+        }
+    }
+}
+
+###
+
+GRAPHQL {{GameBoardOnlineApi_HostAddress}}/graphql
+Authorization: Bearer {{tokenUser1}}
+
+mutation {
+    codeNames {
+        giveHint(roomId: "4D4822CA-88B5-4271-83A6-A5C9D126A54A", data: { hint: "Monde", nb: 2 }) {
+            id
+            hints {
+                id
+                word
+                nb
+            }
+        }
+    }
+}
+
+###
+
+GRAPHQL {{GameBoardOnlineApi_HostAddress}}/graphql
+Authorization: Bearer {{tokenUser1}}
+
+mutation {
+    codeNames {
+        makeProposal(roomId: "4D4822CA-88B5-4271-83A6-A5C9D126A54A", data: { word: "Tokyo" }) {
+            id
+            hints {
+                id
+                word
+                nb
+            }
+            words {
+                id
+                name
+                isFound
+            }
+        }
+    }
+}

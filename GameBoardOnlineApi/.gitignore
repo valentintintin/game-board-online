@@ -1,0 +1,11 @@
+.DS_Store
+.idea
+*.user
+published
+
+bin/
+obj/
+/packages/
+riderModule.iml
+/_ReSharper.Caches/
+data.db*

@@ -1,0 +1,104 @@
+# This file was generated. Do not edit manually.
+
+schema {
+    query: Query
+    mutation: Mutation
+}
+
+type CodeNamesMutations {
+    create(roomId: UUID!): Game
+    giveHint(data: CodeNamesGiveHintEventInput!, roomId: UUID!): Game
+    makeProposal(data: CodeNamesMakeProposalEventInput!, roomId: UUID!): Game
+    reset(roomId: UUID!): Game
+}
+
+type CodeNamesWordCard {
+    allowFlipOnce: Boolean!
+    canBeDeleted: Boolean!
+    canBeShownToOthers: Boolean!
+    canFlip: Boolean!
+    canMove: Boolean!
+    canRotate: Boolean!
+    game: Game!
+    height: Int!
+    id: UUID!
+    image: String!
+    imageBack: String
+    isFound: Boolean!
+    lastActorTouched: Player
+    name: String!
+    onlyForOwner: Boolean!
+    owner: Player
+    rotation: Int!
+    shadowColor: String
+    showBack: Boolean!
+    width: Int!
+    word: String!
+    x: Int!
+    y: Int!
+}
+
+type Game {
+    createdAt: DateTime!
+    id: UUID!
+    name: String!
+    players: [Player!]!
+}
+
+type Mutation {
+    codeNames: CodeNamesMutations!
+    createRoom(name: String!): Room
+    joinRoom(roomId: UUID!): Room
+    leaveRoom(roomId: UUID!): Room
+}
+
+type Player {
+    game: Game!
+    id: UUID!
+    name: String!
+    user: User!
+}
+
+type Query {
+    login(name: String!): String!
+    me: User
+    room(roomId: UUID!): Room
+    rooms: [Room!]!
+}
+
+type Room {
+    createdAt: DateTime!
+    currentGame: Game
+    id: UUID!
+    name: String!
+    owner: User!
+    users: [User!]!
+}
+
+type User {
+    createdAt: DateTime!
+    id: UUID!
+    name: String!
+    players: [Player!]!
+    roomsCreated: [Room!]!
+}
+
+enum ApplyPolicy {
+    AFTER_RESOLVER
+    BEFORE_RESOLVER
+    VALIDATION
+}
+
+"The `DateTime` scalar represents an ISO-8601 compliant date time type."
+scalar DateTime
+
+scalar UUID
+
+input CodeNamesGiveHintEventInput {
+    hint: String!
+    nb: Int!
+}
+
+input CodeNamesMakeProposalEventInput {
+    word: String!
+}

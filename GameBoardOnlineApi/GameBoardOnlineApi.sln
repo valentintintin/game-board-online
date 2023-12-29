@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameBoardOnlineApi", "GameBoardOnlineApi\GameBoardOnlineApi.csproj", "{B2F989FD-0CA2-4F81-A548-D24A5AB943CC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common", "Common\Common.csproj", "{D4EFE138-F3EB-4621-B4B0-651C24317659}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GamesTest", "GamesTest\GamesTest.csproj", "{70F338B6-7BCD-4713-BFA4-F4740B82F06F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B2F989FD-0CA2-4F81-A548-D24A5AB943CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B2F989FD-0CA2-4F81-A548-D24A5AB943CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B2F989FD-0CA2-4F81-A548-D24A5AB943CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B2F989FD-0CA2-4F81-A548-D24A5AB943CC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D4EFE138-F3EB-4621-B4B0-651C24317659}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D4EFE138-F3EB-4621-B4B0-651C24317659}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D4EFE138-F3EB-4621-B4B0-651C24317659}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D4EFE138-F3EB-4621-B4B0-651C24317659}.Release|Any CPU.Build.0 = Release|Any CPU
+		{70F338B6-7BCD-4713-BFA4-F4740B82F06F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{70F338B6-7BCD-4713-BFA4-F4740B82F06F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{70F338B6-7BCD-4713-BFA4-F4740B82F06F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{70F338B6-7BCD-4713-BFA4-F4740B82F06F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
