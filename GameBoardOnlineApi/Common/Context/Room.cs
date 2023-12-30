@@ -15,7 +15,6 @@ public record Room : IEntity, ICreated
     
     public virtual required User Owner { get; set; }
     
-    public Guid? CurrentGameId { get; set; }
     public virtual Game? CurrentGame { get; set; }
     
     public virtual ICollection<User> Users { get; set; } = [];

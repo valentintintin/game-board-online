@@ -51,11 +51,16 @@ public class Tests
         Assert.Multiple(() =>
         {
             Assert.That(game.Words, Has.Count.EqualTo(25));
+            Assert.That(game.Words.Any(w => w is { X: 0, Y: 0 }), Is.True);
+            Assert.That(game.Words.Any(w => w is { X: 4, Y: 4 }), Is.True);
             Assert.That(game.Words.Where(w => w.Team == CodeNamesTeam.Black).ToList(), Has.Count.EqualTo(1));
             Assert.That(game.Words.Where(w => w.Team == CodeNamesTeam.Neutral).ToList(), Has.Count.EqualTo(25 - 1 - 8 - 9));
             Assert.That(game.Words.Where(w => w.Team == game.TeamBeginning).ToList(), Has.Count.EqualTo(9));
             Assert.That(game.Words.Where(w => w.Team != CodeNamesTeam.Black && w.Team != CodeNamesTeam.Neutral && w.Team != game.TeamBeginning).ToList(), Has.Count.EqualTo(8));
-
+        });
+        
+        Assert.Multiple(() =>
+        {
             var players = game.GetPlayers().ToList();
             
             Assert.That(players.ElementAt(0).IsGuesser, Is.True);
@@ -79,41 +84,112 @@ public class Tests
             Assert.That(GetRequiredService<DataContext>().Players.ToList(), Has.Count.EqualTo(4));
         });
     }
-
+    
     [Test]
     public void MakeHintAndProposal()
     {
         var service = GetRequiredService<CodeNamesService>();
         var game = service.InitializeGame(_room);
+        var players = game.GetPlayers().ToList();
 
-        game = service.DoAction(_room, _room.Users.ElementAt(0), CodeNamesAction.GiveHint, new CodeNamesGiveHintEvent
+        // Not current player
+        Assert.Throws<NotCurrentPlayerException>(() => service.DoAction(_room, players.First(p => p != game.CurrentPlayer).User, CodeNamesAction.GiveHint, new CodeNamesGiveHintEvent
+        {
+            Hint = "Test", Nb = 1
+        }.ToDictionary()));
+        
+        // OK
+        game = service.DoAction(_room, game.CurrentPlayer!.User, CodeNamesAction.GiveHint, new CodeNamesGiveHintEvent
         {
             Hint = "Test", Nb = 1
         }.ToDictionary());
-        Assert.That(game.Hints, Has.Count.EqualTo(1));
-    }
-
-    [Test]
-    public void MakeProposal()
-    {
-        var service = GetRequiredService<CodeNamesService>();
-        var game = service.InitializeGame(_room);
-
-        game = service.DoAction(_room, _room.Users.ElementAt(2), CodeNamesAction.MakeProposal, new CodeNamesMakeProposalEvent
+        
+        Assert.Multiple(() =>
         {
-            Word = game.Words.First().Word
+            Assert.That(game.Hints, Has.Count.EqualTo(1));
+            Assert.That(game.CurrentPlayer, Is.Null);
+            Assert.That(game.GetCurrentState(), Is.EqualTo(CodeNamesState.Proposal));
+        });
+        
+        var hint = game.Hints.First();
+
+        // Not current team
+        Assert.Throws<NotCurrentTeamException>(() => service.DoAction(_room, players.First(p => p.Team != game.CurrentTeam).User, CodeNamesAction.MakeProposal, new CodeNamesMakeProposalEvent
+        {
+            Word = game.Words.First().Word,
+            HintId = hint.Id
+        }.ToDictionary()));
+
+        // Correct team but not guesser
+        Assert.Throws<ForbiddenGameActionException>(() => service.DoAction(_room, players.First(p => p.Team == game.CurrentTeam && !p.IsGuesser).User, CodeNamesAction.MakeProposal, new CodeNamesMakeProposalEvent
+        {
+            Word = game.Words.First().Word,
+            HintId = hint.Id
+        }.ToDictionary()));
+
+        var word = game.Words.First(w => w.Team == game.CurrentTeam);
+        
+        // OK
+        game = service.DoAction(_room, players.First(p => p.Team == game.CurrentTeam && p.IsGuesser).User, CodeNamesAction.MakeProposal, new CodeNamesMakeProposalEvent
+        {
+            Word = word.Word,
+            HintId = hint.Id
         }.ToDictionary());
-        Assert.That(game.Words.First().IsFound, Is.True);
-
-        Assert.Throws<NotFoundException<CodeNamesWordCard>>(() => service.DoAction(_room, _room.Users.ElementAt(2), CodeNamesAction.MakeProposal, new CodeNamesMakeProposalEvent
+        
+        Assert.Multiple(() =>
         {
-            Word = game.Words.First().Word
-        }.ToDictionary()));
+            Assert.That(word.IsFound, Is.True);
+            Assert.That(hint.Nb, Is.EqualTo(0));
+            Assert.That(game.GetCurrentState(), Is.EqualTo(CodeNamesState.LastProposal));
+        });
+        
+        word = game.Words.First(w => w.Team != game.CurrentTeam && !w.IsFound);
 
-        Assert.Throws<NotFoundException<CodeNamesWordCard>>(() => service.DoAction(_room, _room.Users.ElementAt(2), CodeNamesAction.MakeProposal, new CodeNamesMakeProposalEvent
+        // Hint alteady used
+        Assert.Throws<ForbiddenGameActionException>(() => game = service.DoAction(_room, players.First(p => p.Team == game.CurrentTeam && p.IsGuesser).User, CodeNamesAction.MakeProposal, new CodeNamesMakeProposalEvent
         {
-            Word = "dodsfkdsfdsfidsq"
+            Word = word.Word,
+            HintId = hint.Id
         }.ToDictionary()));
+        
+        // OK
+        game = service.DoAction(_room, players.First(p => p.Team == game.CurrentTeam && p.IsGuesser).User, CodeNamesAction.Pass);
+        
+        Assert.Multiple(() =>
+        {
+            Assert.That(game.CurrentTeam, Is.Not.EqualTo(game.TeamBeginning));
+            Assert.That(game.CurrentPlayer, Is.Not.Null);
+            Assert.That(game.GetCurrentState(), Is.EqualTo(CodeNamesState.Hint));
+        });
+        
+        foreach (var words in game.Words.Where(w => w.Team == game.CurrentTeam).Take(7))
+        {
+            words.SetFound();
+        }
+        
+        Assert.That(game.Words.Where(w => w.Team == game.CurrentTeam && !w.IsFound).ToList(), Has.Count.EqualTo(1));
+        
+        game = service.DoAction(_room, game.CurrentPlayer!.User, CodeNamesAction.GiveHint, new CodeNamesGiveHintEvent
+        {
+            Hint = "Test 2", Nb = 1
+        }.ToDictionary());
+        
+        hint = game.Hints.Last();
+        word = game.Words.First(w => w.Team == game.CurrentTeam && !w.IsFound);
+        
+        // OK
+        game = service.DoAction(_room, players.First(p => p.Team == game.CurrentTeam && p.IsGuesser).User, CodeNamesAction.MakeProposal, new CodeNamesMakeProposalEvent
+        {
+            Word = word.Word,
+            HintId = hint.Id
+        }.ToDictionary());
+        
+        Assert.Multiple(() =>
+        {
+            Assert.That(game.Words.Where(w => w.Team == game.CurrentTeam && !w.IsFound).ToList(), Is.Empty);
+            Assert.That(game.GetCurrentState(), Is.EqualTo(CodeNamesState.End));
+            Assert.That(game.WinnerTeam, Is.EqualTo(word.Team));
+        });
     }
 
     private T GetRequiredService<T>() where T : class

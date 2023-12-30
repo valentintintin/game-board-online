@@ -3,6 +3,7 @@ using System;
 using Common.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Common.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20231230124635_GameCurrentPlayerTeam")]
+    partial class GameCurrentPlayerTeam
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -127,23 +130,15 @@ namespace Common.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("State")
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("Type")
                         .IsRequired()
                         .HasMaxLength(13)
                         .HasColumnType("TEXT")
                         .HasColumnName("Discriminator");
 
-                    b.Property<Guid?>("WinnerPlayerId")
-                        .HasColumnType("TEXT");
-
                     b.HasKey("Id");
 
                     b.HasIndex("CurrentPlayerId");
-
-                    b.HasIndex("WinnerPlayerId");
 
                     b.ToTable("Games");
 
@@ -303,16 +298,13 @@ namespace Common.Migrations
                 {
                     b.HasBaseType("Common.Context.Game");
 
-                    b.Property<int?>("CurrentTeam")
+                    b.Property<int>("CurrentTeam")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("TeamBeginning")
                         .IsRequired()
                         .HasMaxLength(16)
                         .HasColumnType("TEXT");
-
-                    b.Property<int?>("WinnerTeam")
-                        .HasColumnType("INTEGER");
 
                     b.HasDiscriminator().HasValue("CodeNamesGame");
                 });
@@ -336,9 +328,6 @@ namespace Common.Migrations
 
                     b.Property<Guid?>("CodeNamesGameId")
                         .HasColumnType("TEXT");
-
-                    b.Property<bool>("IsInfinite")
-                        .HasColumnType("INTEGER");
 
                     b.Property<int>("Nb")
                         .HasColumnType("INTEGER");
@@ -381,13 +370,7 @@ namespace Common.Migrations
                         .WithMany()
                         .HasForeignKey("CurrentPlayerId");
 
-                    b.HasOne("Common.Context.Player", "WinnerPlayer")
-                        .WithMany()
-                        .HasForeignKey("WinnerPlayerId");
-
                     b.Navigation("CurrentPlayer");
-
-                    b.Navigation("WinnerPlayer");
                 });
 
             modelBuilder.Entity("Common.Context.Player", b =>

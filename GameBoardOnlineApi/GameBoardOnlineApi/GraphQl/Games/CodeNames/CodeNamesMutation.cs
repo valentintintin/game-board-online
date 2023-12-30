@@ -50,6 +50,6 @@ public class CodeNamesMutations
         var room = context.Rooms.FindOrThrow(roomId);
         var user = context.Users.FindOrThrow(claimsPrincipal.GetUserId());
         
-        return context.Games.FindByIdAsQueryable(codeNamesService.DoAction(room, user, CodeNamesAction.Reset, null).Id).Cast<CodeNamesGame>();
+        return context.Games.FindByIdAsQueryable(codeNamesService.DoAction(room, user, CodeNamesAction.Reset).Id).Cast<CodeNamesGame>();
     }
 }

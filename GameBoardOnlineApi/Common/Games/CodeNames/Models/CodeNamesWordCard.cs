@@ -15,7 +15,7 @@ public record CodeNamesWordCard : Entity
     }
     
     [SetsRequiredMembers]
-    public CodeNamesWordCard(Game game, string word, CodeNamesTeam team) : base(game, $"Mot {word}", "card.jpg", team switch
+    public CodeNamesWordCard(Game game, string word, CodeNamesTeam team, int x, int y) : base(game, $"Mot {word}", "card.jpg", team switch
     {
         CodeNamesTeam.Red => "red.jpg",
         CodeNamesTeam.Blue => "blue.jpg",
@@ -28,6 +28,8 @@ public record CodeNamesWordCard : Entity
 
         Word = word;
         Team = team;
+        X = x;
+        Y = y;
     }
 
     public void SetFound()

@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Common.Games.CodeNames.Models;
 using Common.Models.Interfaces;
 
 namespace Common.Context;
@@ -13,5 +14,25 @@ public record Game : IEntity, ICreated
 
     public string Type { get; set; } = null!;
 
+    public string? State { get; set; }
+
     public virtual ICollection<Player> Players { get; set; } = [];
+    
+    public virtual Player? CurrentPlayer { get; set; }
+    public virtual Player? WinnerPlayer { get; set; }
+
+    public IEnumerable<T> GetPlayers<T>()
+    {
+        return Players.Cast<T>();
+    }
+
+    public void SetState<T>(T state) where T : Enum
+    {
+        State = state.ToString();
+    }
+
+    public T? GetCurrentState<T>() where T : struct, Enum
+    {
+        return State == null ? default : Enum.Parse<T>(State);
+    }
 }

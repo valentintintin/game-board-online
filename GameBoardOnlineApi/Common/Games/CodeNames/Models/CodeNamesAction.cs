@@ -4,5 +4,6 @@ public enum CodeNamesAction
 {
     Reset,
     GiveHint,
-    MakeProposal
+    MakeProposal,
+    Pass
 }
