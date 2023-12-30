@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("GameBoardOnlineApi")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c88b0c8c809c6d0b1e2fd3d6fbb9efd0173d464f")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6bc7309c22d37dd18b8eb290f3df03047df539af")]
 [assembly: System.Reflection.AssemblyProductAttribute("GameBoardOnlineApi")]
 [assembly: System.Reflection.AssemblyTitleAttribute("GameBoardOnlineApi")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

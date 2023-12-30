@@ -5,11 +5,45 @@ schema {
     mutation: Mutation
 }
 
+type CodeNamesGame {
+    createdAt: DateTime!
+    hints: [CodeNamesHint!]!
+    id: UUID!
+    name: String!
+    type: String!
+    players: [CodeNamesPlayer!]!
+    teamBeginning: CodeNamesTeam!
+    words: [CodeNamesWordCard!]!
+}
+
+type CodeNamesHint {
+    createdAt: DateTime!
+    game: Game!
+    id: UUID!
+    name: String!
+    nb: Int!
+    owner: Player
+    word: String!
+}
+
 type CodeNamesMutations {
-    create(roomId: UUID!): Game
-    giveHint(data: CodeNamesGiveHintEventInput!, roomId: UUID!): Game
-    makeProposal(data: CodeNamesMakeProposalEventInput!, roomId: UUID!): Game
-    reset(roomId: UUID!): Game
+    create(roomId: UUID!): CodeNamesGame
+    giveHint(data: CodeNamesGiveHintEventInput!, roomId: UUID!): CodeNamesGame
+    makeProposal(data: CodeNamesMakeProposalEventInput!, roomId: UUID!): CodeNamesGame
+    reset(roomId: UUID!): CodeNamesGame
+}
+
+type CodeNamesPlayer {
+    game: Game!
+    id: UUID!
+    isGuesser: Boolean!
+    name: String!
+    team: CodeNamesTeam!
+    user: User!
+}
+
+type CodeNamesQuery {
+    get(gameId: UUID!): CodeNamesGame
 }
 
 type CodeNamesWordCard {
@@ -42,6 +76,7 @@ type Game {
     createdAt: DateTime!
     id: UUID!
     name: String!
+    type: String!
     players: [Player!]!
 }
 
@@ -60,6 +95,7 @@ type Player {
 }
 
 type Query {
+    codeNames: CodeNamesQuery!
     login(name: String!): String!
     me: User
     room(roomId: UUID!): Room
@@ -69,6 +105,7 @@ type Query {
 type Room {
     createdAt: DateTime!
     currentGame: Game
+    currentGameId: UUID
     id: UUID!
     name: String!
     owner: User!
@@ -87,6 +124,13 @@ enum ApplyPolicy {
     AFTER_RESOLVER
     BEFORE_RESOLVER
     VALIDATION
+}
+
+enum CodeNamesTeam {
+    BLACK
+    BLUE
+    NEUTRAL
+    RED
 }
 
 "The `DateTime` scalar represents an ISO-8601 compliant date time type."

@@ -9,8 +9,10 @@ public class GameConfiguration : IEntityTypeConfiguration<Game>
 {
     public void Configure(EntityTypeBuilder<Game> builder)
     {
+        builder.Property(g => g.Type).HasColumnName("Discriminator");
+        
         builder
-            .HasDiscriminator()
+            .HasDiscriminator(g => g.Type)
             .HasValue<CodeNamesGame>(nameof(CodeNamesGame));
     }
 }

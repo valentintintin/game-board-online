@@ -11,5 +11,7 @@ public record Game : IEntity, ICreated
     [MaxLength(64)] 
     public required string Name { get; set; }
 
+    public string Type { get; set; } = null!;
+
     public virtual ICollection<Player> Players { get; set; } = [];
 }

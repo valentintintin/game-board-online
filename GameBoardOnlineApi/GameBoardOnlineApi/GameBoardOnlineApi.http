@@ -2,6 +2,7 @@
 @tokenUser1 = eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI4ZWE0NWRhMS1mZTVhLTQ0ZGMtOGE2Yy1lYTQzNTMzNWU5NDQiLCJuYW1lIjoiVmFsZW50aW4ifQ.qJiZaRuczdFbALPcev6iQqjsoMV11elYyI097_g6mf8
 @tokenUser2 = eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlM2M3ZGY5OC03NmQxLTQyMTQtYjA3MC1kZjNiNTMyMDZiMGEiLCJuYW1lIjoiSnVsaW5lIn0.duBGrQdBRDAaTecXEE5oNAc_9EAZh6jLexxAjbsLwpY
 @roomId = 4D4822CA-88B5-4271-83A6-A5C9D126A54A
+@gameId = D49A1F27-E475-49F3-A785-BDA3F6C9EA4A
 
 GRAPHQL {{GameBoardOnlineApi_HostAddress}}/graphql
 
@@ -51,6 +52,25 @@ mutation {
     }
 }
 
+
+###
+
+GRAPHQL {{GameBoardOnlineApi_HostAddress}}/graphql
+Authorization: Bearer {{tokenUser2}}
+
+query {
+    codeNames {
+        get(gameId: "{{gameId}}") {
+            id
+            name
+            players {
+                id
+                name        
+            }
+        }
+    }
+}
+
 ###
 
 GRAPHQL {{GameBoardOnlineApi_HostAddress}}/graphql
@@ -62,6 +82,7 @@ query {
         currentGame {
             id
             createdAt
+            type
             name
             players {
                 id
