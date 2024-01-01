@@ -11,7 +11,7 @@ namespace Common.Services;
 
 public class UserService(ILogger<UserService> logger, IConfiguration configuration, DataContext context) : AService(logger)
 {
-    public User Create(string name)
+    public User Create(string name, string color)
     {
         var user = context.Users.FirstOrDefault(u => u.Name.ToLower() == name.Trim().ToLower());
 
@@ -20,6 +20,7 @@ public class UserService(ILogger<UserService> logger, IConfiguration configurati
             user = new User
             {
                 Name = name.Trim(),
+                Color = color
             };
 
             context.Add(user);

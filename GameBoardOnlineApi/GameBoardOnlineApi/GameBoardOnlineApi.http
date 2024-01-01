@@ -150,3 +150,14 @@ mutation {
         }
     }
 }
+
+###
+
+GRAPHQL {{GameBoardOnlineApi_HostAddress}}/graphql
+Authorization: Bearer {{tokenUser1}}
+
+mutation {
+    sendChatMessage(roomId: "{{roomId}}", message: "Test") {
+        id
+    }
+}

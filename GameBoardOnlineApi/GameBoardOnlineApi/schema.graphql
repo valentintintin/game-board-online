@@ -3,16 +3,31 @@
 schema {
     query: Query
     mutation: Mutation
+    subscription: Subscription
+}
+
+type ChatMessage {
+    createdAt: DateTime!
+    id: UUID!
+    name: String!
+    room: Room!
+    user: User!
 }
 
 type CodeNamesGame {
     createdAt: DateTime!
+    currentPlayer: Player
+    currentState: CodeNamesState
+    currentTeam: CodeNamesTeam
     hints: [CodeNamesHint!]!
     id: UUID!
     name: String!
-    type: String!
     players: [CodeNamesPlayer!]!
+    state: String
     teamBeginning: CodeNamesTeam!
+    type: String!
+    winnerPlayer: Player
+    winnerTeam: CodeNamesTeam
     words: [CodeNamesWordCard!]!
 }
 
@@ -20,17 +35,19 @@ type CodeNamesHint {
     createdAt: DateTime!
     game: Game!
     id: UUID!
+    isInfinite: Boolean!
     name: String!
     nb: Int!
     owner: Player
+    team: CodeNamesTeam!
     word: String!
 }
 
 type CodeNamesMutations {
     create(roomId: UUID!): CodeNamesGame
-    giveHint(data: CodeNamesGiveHintEventInput!, roomId: UUID!): CodeNamesGame
-    makeProposal(data: CodeNamesMakeProposalEventInput!, roomId: UUID!): CodeNamesGame
-    reset(roomId: UUID!): CodeNamesGame
+    giveHint(data: CodeNamesGiveHintEventRequestInput!, gameId: UUID!): EventResponseOfCodeNamesGameAndCodeNamesPlayerAndCodeNamesActionAndCodeNamesHint
+    makeProposal(data: CodeNamesMakeProposalEventRequestInput!, gameId: UUID!): EventResponseOfCodeNamesGameAndCodeNamesPlayerAndCodeNamesActionAndCodeNamesWordCard
+    reset(roomId: UUID!): EventResponseOfCodeNamesGameAndCodeNamesPlayerAndCodeNamesActionAndObject
 }
 
 type CodeNamesPlayer {
@@ -72,12 +89,32 @@ type CodeNamesWordCard {
     y: Int!
 }
 
+type EventResponseOfCodeNamesGameAndCodeNamesPlayerAndCodeNamesActionAndCodeNamesHint {
+    action: CodeNamesAction!
+    data: CodeNamesHint
+    game: CodeNamesGame!
+    player: CodeNamesPlayer!
+}
+
+type EventResponseOfCodeNamesGameAndCodeNamesPlayerAndCodeNamesActionAndCodeNamesWordCard {
+    action: CodeNamesAction!
+    data: CodeNamesWordCard
+    game: CodeNamesGame!
+    player: CodeNamesPlayer!
+}
+
+type EventResponseOfCodeNamesGameAndCodeNamesPlayerAndCodeNamesActionAndObject {
+    action: CodeNamesAction!
+    game: CodeNamesGame!
+    player: CodeNamesPlayer!
+}
+
 type Game {
     createdAt: DateTime!
     id: UUID!
     name: String!
-    type: String!
     players: [Player!]!
+    type: String!
 }
 
 type Mutation {
@@ -85,6 +122,7 @@ type Mutation {
     createRoom(name: String!): Room
     joinRoom(roomId: UUID!): Room
     leaveRoom(roomId: UUID!): Room
+    sendChatMessage(message: String!, roomId: UUID!): ChatMessage
 }
 
 type Player {
@@ -103,13 +141,20 @@ type Query {
 }
 
 type Room {
+    chatMessages: [ChatMessage!]!
     createdAt: DateTime!
     currentGame: Game
-    currentGameId: UUID
     id: UUID!
     name: String!
     owner: User!
     users: [User!]!
+}
+
+type Subscription {
+    chatMessage: ChatMessage
+    giveHint: EventResponseOfCodeNamesGameAndCodeNamesPlayerAndCodeNamesActionAndCodeNamesHint!
+    makeProposal: EventResponseOfCodeNamesGameAndCodeNamesPlayerAndCodeNamesActionAndCodeNamesWordCard!
+    reset: EventResponseOfCodeNamesGameAndCodeNamesPlayerAndCodeNamesActionAndObject!
 }
 
 type User {
@@ -126,6 +171,20 @@ enum ApplyPolicy {
     VALIDATION
 }
 
+enum CodeNamesAction {
+    GIVE_HINT
+    MAKE_PROPOSAL
+    PASS
+    RESET
+}
+
+enum CodeNamesState {
+    END
+    HINT
+    LAST_PROPOSAL
+    PROPOSAL
+}
+
 enum CodeNamesTeam {
     BLACK
     BLUE
@@ -138,11 +197,12 @@ scalar DateTime
 
 scalar UUID
 
-input CodeNamesGiveHintEventInput {
+input CodeNamesGiveHintEventRequestInput {
     hint: String!
     nb: Int!
 }
 
-input CodeNamesMakeProposalEventInput {
+input CodeNamesMakeProposalEventRequestInput {
+    hintId: UUID!
     word: String!
 }

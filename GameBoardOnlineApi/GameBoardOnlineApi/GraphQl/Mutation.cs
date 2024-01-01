@@ -4,6 +4,7 @@ using Common.Extensions;
 using Common.Services;
 using GameBoardOnlineApi.GraphQl.Games.CodeNames;
 using HotChocolate.Authorization;
+using HotChocolate.Subscriptions;
 
 namespace GameBoardOnlineApi.GraphQl;
 
@@ -39,6 +40,21 @@ public class Mutation
         var user = context.Users.FindOrThrow(claimsPrincipal.GetUserId());
 
         return context.Rooms.FindByIdAsQueryable(roomService.Leave(room, user).Id);
+    }
+    
+    [Authorize]
+    [UseFirstOrDefault]
+    [UseProjection]
+    public async Task<IQueryable<ChatMessage>> SendChatMessage(Guid roomId, string message, DataContext context, ClaimsPrincipal claimsPrincipal, [Service] RoomService roomService, [Service] ITopicEventSender sender)
+    {
+        var room = context.Rooms.FindOrThrow(roomId);
+        var user = context.Users.FindOrThrow(claimsPrincipal.GetUserId());
+
+        var chatMessage = roomService.SendChatMessage(room, user, message);
+
+        await sender.SendAsync(nameof(Subscription.ChatMessage), chatMessage);
+
+        return context.ChatMessages.FindByIdAsQueryable(chatMessage.Id);
     }
     
     public CodeNamesMutations CodeNames => new();

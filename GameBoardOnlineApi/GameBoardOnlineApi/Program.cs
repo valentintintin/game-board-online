@@ -17,11 +17,13 @@ builder.Services.AddControllers();
     
 builder.Services
     .AddGraphQLServer()
+    .AddInMemorySubscriptions()
     .AddAuthorization()
     .RegisterDbContext<DataContext>()
     .AddErrorFilter<ErrorFilter>()
     .AddQueryType<Query>()
     .AddMutationType<Mutation>()
+    .AddSubscriptionType<Subscription>()
     .AddType<RoomType>()
     .AddType<GameSimpleType>()
     .AddType<CodeNamesWordCardType>()
@@ -97,6 +99,8 @@ if (app.Environment.IsDevelopment())
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseWebSockets();
 
 app.MapControllers();
 app.MapGraphQL();

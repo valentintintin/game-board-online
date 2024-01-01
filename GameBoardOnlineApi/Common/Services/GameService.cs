@@ -5,41 +5,31 @@ using Microsoft.Extensions.Logging;
 namespace Common.Services;
 
 public abstract class GameService<TGame, TPlayer, TAction>(ILogger<GameService<TGame, TPlayer, TAction>> logger, DataContext context) : AService(logger)
-    where TPlayer : Player where TGame : Game
+    where TPlayer : Player where TGame : Game where TAction : Enum
 {
     public TGame InitializeGame(Room room, Dictionary<string, object?>? data = null)
     {
         var game = InitializeGameForRoom(room, data);
         
         room.CurrentGame = game;
-        
-        context.Update(room);
-        context.SaveChanges();
+
+        SaveGame(game);
         
         return game;
+    }
+
+    protected void SaveGame(TGame game)
+    {
+        context.Update(game);
+        context.SaveChanges();
     }
 
     protected abstract TGame InitializeGameForRoom(Room room, Dictionary<string, object?>? data);
 
-    public TGame DoAction(Room room, User user, TAction action, Dictionary<string, object?>? data = null)
+    protected TPlayer GetPlayerForUser(TGame game, User user)
     {
-        if (room.CurrentGame == null)
-        {
-            throw new NoGameForRoomException();
-        }
-        
-        var game = (TGame) room.CurrentGame;
-        var player = (TPlayer) game.Players.First(p => p.User == user);
-        
-        game = DoActionForGame(room, game, player, action, data);
-
-        context.Update(game);
-        context.SaveChanges();
-        
-        return game;
+        return (TPlayer) game.Players.First(p => p.User == user);
     }
-    
-    protected abstract TGame DoActionForGame(Room room, TGame game, TPlayer player, TAction action, Dictionary<string, object?>? data);
     
     protected void CheckEnoughPlayers(Room room, int nb)
     {

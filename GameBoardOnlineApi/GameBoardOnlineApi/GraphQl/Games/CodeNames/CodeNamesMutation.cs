@@ -3,7 +3,9 @@ using Common.Context;
 using Common.Extensions;
 using Common.Games.CodeNames;
 using Common.Games.CodeNames.Events;
+using Common.Games.CodeNames.Events.Requests;
 using Common.Games.CodeNames.Models;
+using Common.Models;
 using HotChocolate.Authorization;
 using Microsoft.EntityFrameworkCore;
 
@@ -23,33 +25,33 @@ public class CodeNamesMutations
     [Authorize]
     [UseFirstOrDefault]
     [UseProjection]
-    public IQueryable<CodeNamesGame> GiveHint(Guid roomId, CodeNamesGiveHintEvent data, DataContext context, ClaimsPrincipal claimsPrincipal, [Service] CodeNamesService codeNamesService)
+    public EventResponse<CodeNamesGame, CodeNamesPlayer, CodeNamesAction, CodeNamesHint> GiveHint(Guid gameId, CodeNamesGiveHintEventRequest data, DataContext context, ClaimsPrincipal claimsPrincipal, [Service] CodeNamesService codeNamesService)
     {
-        var room = context.Rooms.FindOrThrow(roomId);
+        var game = (CodeNamesGame) context.Games.FindOrThrow(gameId);
         var user = context.Users.FindOrThrow(claimsPrincipal.GetUserId());
-        
-        return context.Games.FindByIdAsQueryable(codeNamesService.DoAction(room, user, CodeNamesAction.GiveHint, data.ToDictionary()).Id).Cast<CodeNamesGame>();
+
+        return codeNamesService.GiveHint(game, user, data);
     }
     
     [Authorize]
     [UseFirstOrDefault]
     [UseProjection]
-    public IQueryable<CodeNamesGame> MakeProposal(Guid roomId, CodeNamesMakeProposalEvent data, DataContext context, ClaimsPrincipal claimsPrincipal, [Service] CodeNamesService codeNamesService)
+    public EventResponse<CodeNamesGame, CodeNamesPlayer, CodeNamesAction, CodeNamesWordCard> MakeProposal(Guid gameId, CodeNamesMakeProposalEventRequest data, DataContext context, ClaimsPrincipal claimsPrincipal, [Service] CodeNamesService codeNamesService)
     {
-        var room = context.Rooms.FindOrThrow(roomId);
+        var game = (CodeNamesGame) context.Games.FindOrThrow(gameId);
         var user = context.Users.FindOrThrow(claimsPrincipal.GetUserId());
         
-        return context.Games.FindByIdAsQueryable(codeNamesService.DoAction(room, user, CodeNamesAction.MakeProposal, data.ToDictionary()).Id).Cast<CodeNamesGame>();
+        return codeNamesService.MakeProposal(game, user, data);
     }
     
     [Authorize]
     [UseFirstOrDefault]
     [UseProjection]
-    public IQueryable<CodeNamesGame> Reset(Guid roomId, DataContext context, ClaimsPrincipal claimsPrincipal, [Service] CodeNamesService codeNamesService)
+    public EventResponse<CodeNamesGame, CodeNamesPlayer, CodeNamesAction, object> Reset(Guid roomId, DataContext context, ClaimsPrincipal claimsPrincipal, [Service] CodeNamesService codeNamesService)
     {
         var room = context.Rooms.FindOrThrow(roomId);
         var user = context.Users.FindOrThrow(claimsPrincipal.GetUserId());
         
-        return context.Games.FindByIdAsQueryable(codeNamesService.DoAction(room, user, CodeNamesAction.Reset).Id).Cast<CodeNamesGame>();
+        return codeNamesService.Reset(room, user);
     }
 }

@@ -9,9 +9,9 @@ namespace GameBoardOnlineApi.GraphQl;
 
 public class Query
 {
-    public string Login(string name, [Service] UserService userService)
+    public string Login(string name, string color, [Service] UserService userService)
     {
-        return userService.Login(userService.Create(name));
+        return userService.Login(userService.Create(name, color));
     }
 
     [Authorize]

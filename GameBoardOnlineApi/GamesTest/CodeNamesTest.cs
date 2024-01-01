@@ -3,6 +3,7 @@ using Common.Exceptions;
 using Common.Extensions;
 using Common.Games.CodeNames;
 using Common.Games.CodeNames.Events;
+using Common.Games.CodeNames.Events.Requests;
 using Common.Games.CodeNames.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,19 +21,23 @@ public class Tests
         [
             new User
             {
-                Name = "Valentin"
+                Name = "Valentin",
+                Color = "blue"
             },
             new User
             {
-                Name = "Juline"
+                Name = "Juline",
+                Color = "red"
             },
             new User
             {
-                Name = "Willyam"
+                Name = "Willyam",
+                Color = "purple"
             },
             new User
             {
-                Name = "Enora"
+                Name = "Enora",
+                Color = "black"
             }
         ];
 
@@ -93,16 +98,16 @@ public class Tests
         var players = game.GetPlayers().ToList();
 
         // Not current player
-        Assert.Throws<NotCurrentPlayerException>(() => service.DoAction(_room, players.First(p => p != game.CurrentPlayer).User, CodeNamesAction.GiveHint, new CodeNamesGiveHintEvent
+        Assert.Throws<NotCurrentPlayerException>(() => service.GiveHint(game, players.First(p => p != game.CurrentPlayer).User, new CodeNamesGiveHintEventRequest
         {
             Hint = "Test", Nb = 1
-        }.ToDictionary()));
+        }));
         
         // OK
-        game = service.DoAction(_room, game.CurrentPlayer!.User, CodeNamesAction.GiveHint, new CodeNamesGiveHintEvent
+        var hint = service.GiveHint(game, game.CurrentPlayer!.User, new CodeNamesGiveHintEventRequest
         {
             Hint = "Test", Nb = 1
-        }.ToDictionary());
+        }).Data;
         
         Assert.Multiple(() =>
         {
@@ -110,31 +115,29 @@ public class Tests
             Assert.That(game.CurrentPlayer, Is.Null);
             Assert.That(game.GetCurrentState(), Is.EqualTo(CodeNamesState.Proposal));
         });
-        
-        var hint = game.Hints.First();
 
         // Not current team
-        Assert.Throws<NotCurrentTeamException>(() => service.DoAction(_room, players.First(p => p.Team != game.CurrentTeam).User, CodeNamesAction.MakeProposal, new CodeNamesMakeProposalEvent
+        Assert.Throws<NotCurrentTeamException>(() => service.MakeProposal(game, players.First(p => p.Team != game.CurrentTeam).User, new CodeNamesMakeProposalEventRequest
         {
             Word = game.Words.First().Word,
             HintId = hint.Id
-        }.ToDictionary()));
+        }));
 
         // Correct team but not guesser
-        Assert.Throws<ForbiddenGameActionException>(() => service.DoAction(_room, players.First(p => p.Team == game.CurrentTeam && !p.IsGuesser).User, CodeNamesAction.MakeProposal, new CodeNamesMakeProposalEvent
+        Assert.Throws<ForbiddenGameActionException>(() => service.MakeProposal(game, players.First(p => p.Team == game.CurrentTeam && !p.IsGuesser).User, new CodeNamesMakeProposalEventRequest
         {
             Word = game.Words.First().Word,
             HintId = hint.Id
-        }.ToDictionary()));
+        }));
 
         var word = game.Words.First(w => w.Team == game.CurrentTeam);
         
         // OK
-        game = service.DoAction(_room, players.First(p => p.Team == game.CurrentTeam && p.IsGuesser).User, CodeNamesAction.MakeProposal, new CodeNamesMakeProposalEvent
+        service.MakeProposal(game, players.First(p => p.Team == game.CurrentTeam && p.IsGuesser).User, new CodeNamesMakeProposalEventRequest
         {
             Word = word.Word,
             HintId = hint.Id
-        }.ToDictionary());
+        });
         
         Assert.Multiple(() =>
         {
@@ -146,14 +149,14 @@ public class Tests
         word = game.Words.First(w => w.Team != game.CurrentTeam && !w.IsFound);
 
         // Hint alteady used
-        Assert.Throws<ForbiddenGameActionException>(() => game = service.DoAction(_room, players.First(p => p.Team == game.CurrentTeam && p.IsGuesser).User, CodeNamesAction.MakeProposal, new CodeNamesMakeProposalEvent
+        Assert.Throws<ForbiddenGameActionException>(() => service.MakeProposal(game, players.First(p => p.Team == game.CurrentTeam && p.IsGuesser).User, new CodeNamesMakeProposalEventRequest
         {
             Word = word.Word,
             HintId = hint.Id
-        }.ToDictionary()));
+        }));
         
         // OK
-        game = service.DoAction(_room, players.First(p => p.Team == game.CurrentTeam && p.IsGuesser).User, CodeNamesAction.Pass);
+        service.Pass(game, players.First(p => p.Team == game.CurrentTeam && p.IsGuesser).User);
         
         Assert.Multiple(() =>
         {
@@ -169,20 +172,19 @@ public class Tests
         
         Assert.That(game.Words.Where(w => w.Team == game.CurrentTeam && !w.IsFound).ToList(), Has.Count.EqualTo(1));
         
-        game = service.DoAction(_room, game.CurrentPlayer!.User, CodeNamesAction.GiveHint, new CodeNamesGiveHintEvent
+        hint = service.GiveHint(game, game.CurrentPlayer!.User, new CodeNamesGiveHintEventRequest
         {
             Hint = "Test 2", Nb = 1
-        }.ToDictionary());
+        }).Data;
         
-        hint = game.Hints.Last();
         word = game.Words.First(w => w.Team == game.CurrentTeam && !w.IsFound);
         
         // OK
-        game = service.DoAction(_room, players.First(p => p.Team == game.CurrentTeam && p.IsGuesser).User, CodeNamesAction.MakeProposal, new CodeNamesMakeProposalEvent
+        service.MakeProposal(game, players.First(p => p.Team == game.CurrentTeam && p.IsGuesser).User, new CodeNamesMakeProposalEventRequest
         {
             Word = word.Word,
             HintId = hint.Id
-        }.ToDictionary());
+        });
         
         Assert.Multiple(() =>
         {

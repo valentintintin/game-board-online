@@ -39,4 +39,21 @@ public class RoomService(ILogger<RoomService> logger, DataContext context) : ASe
 
         return room;
     }
+
+    public ChatMessage SendChatMessage(Room room, User user, string message)
+    {
+        var chatMessage = new ChatMessage
+        {
+            User = user,
+            Room = room,
+            Name = message
+        };
+
+        room.ChatMessages.Add(chatMessage);
+        
+        context.Update(room);
+        context.SaveChanges();
+
+        return chatMessage;
+    }
 }

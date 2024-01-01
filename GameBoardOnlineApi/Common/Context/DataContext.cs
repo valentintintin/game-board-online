@@ -10,6 +10,7 @@ public class DataContext(DbContextOptions<DataContext> options) : DbContext(opti
 {
     public required DbSet<User> Users { get; init; }
     public required DbSet<Room> Rooms { get; init; }
+    public required DbSet<ChatMessage> ChatMessages { get; init; }
     
     public required DbSet<Game> Games { get; init; }
     public required DbSet<Player> Players { get; init; }

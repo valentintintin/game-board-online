@@ -12,6 +12,9 @@ public record User : IEntity, ICreated
     [MaxLength(128)]
     public required string Name { get; set; }
     
+    [MaxLength(8)]
+    public required string Color { get; set; }
+    
     public DateTime CreatedAt { get; set; }
 
     public virtual ICollection<Room> RoomsCreated { get; set; } = [];
