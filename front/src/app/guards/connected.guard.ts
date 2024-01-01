@@ -1,17 +1,16 @@
-import { Injectable } from '@angular/core';
-import { ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot } from '@angular/router';
-import { Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
-import { WebsocketService } from '../services/websocket.service';
+import {Injectable} from '@angular/core';
+import {ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot} from '@angular/router';
+import {Observable, of} from 'rxjs';
+import {tap} from 'rxjs/operators';
 
 @Injectable()
 export class ConnectedGuard implements CanActivate {
 
-  constructor(protected websocketService: WebsocketService, protected router: Router) {
+  constructor(protected router: Router) {
   }
 
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean> {
-    return this.websocketService.connected$.pipe(
+    return of(true).pipe(
       tap(result => {
         if (!result) {
           this.router.navigate(['status/network-error'], {

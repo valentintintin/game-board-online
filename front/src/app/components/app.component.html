@@ -2,17 +2,17 @@
   <nz-header>
     <h1 nz-typography>Game Board Online</h1>
 
-    <div class="hide-lt-sm">
-      Joueurs connectés :&nbsp;<strong>{{ (userService.users$ | async).length > 0 ? (userService.users$ | async).length : 'aucun' }}</strong>
-    </div>
+<!--    <div class="hide-lt-sm">-->
+<!--      Joueurs connectés :&nbsp;<strong>{{ (userService.users$ | async).length > 0 ? (userService.users$ | async).length : 'aucun' }}</strong>-->
+<!--    </div>-->
 
-    <div class="hide-lt-md">
-      Jeu en cours :&nbsp;<strong>{{ (collectionService.currentCollection$ | async) ? (collectionService.currentCollection$ | async).name : 'aucun' }}</strong>
-    </div>
+<!--    <div class="hide-lt-md">-->
+<!--      Jeu en cours :&nbsp;<strong>{{ (collectionService.currentCollection$ | async) ? (collectionService.currentCollection$ | async).name : 'aucun' }}</strong>-->
+<!--    </div>-->
 
-    <div class="hide-lt-lg">
-      Mon nom :&nbsp;<strong [style.color]="(userService.currentUser$ | async)?.color">{{ (userService.currentUser$ | async) ? (userService.currentUser$ | async).name : 'aucun' }}</strong>
-    </div>
+<!--    <div class="hide-lt-lg">-->
+<!--      Mon nom :&nbsp;<strong [style.color]="(userService.currentUser$ | async)?.color">{{ (userService.currentUser$ | async) ? (userService.currentUser$ | async).name : 'aucun' }}</strong>-->
+<!--    </div>-->
   </nz-header>
 
   <nz-content>

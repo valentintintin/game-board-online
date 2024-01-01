@@ -1,16 +1,15 @@
-import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
-import { HomeComponent } from './components/home/home.component';
-import { GameComponent } from './components/game/game.component';
-import { StatusComponent } from './components/status/status.component';
-import { SocketIdGuard } from './guards/socket-id-guard.service';
-import { ConnectedGuard } from './guards/connected.guard';
+import {NgModule} from '@angular/core';
+import {RouterModule, Routes} from '@angular/router';
+import {HomeComponent} from './components/home/home.component';
+import {GameComponent} from './components/game/game.component';
+import {StatusComponent} from './components/status/status.component';
+import {ConnectedGuard} from './guards/connected.guard';
 
 const routes: Routes = [
   {
     path: 'game',
     component: GameComponent,
-    canActivate: [ConnectedGuard, SocketIdGuard]
+    canActivate: [ConnectedGuard]
   },
   {
     path: 'status',
@@ -25,7 +24,7 @@ const routes: Routes = [
       {
         path: 'game-pause',
         component: StatusComponent,
-        canActivate: [ConnectedGuard, SocketIdGuard],
+        canActivate: [ConnectedGuard],
         data: {
           state: 'game.pause'
         }

@@ -7,6 +7,4 @@ import { CollectionService } from '../../../services/collection.service';
   styleUrls: ['./list-collection.component.scss']
 })
 export class ListCollectionComponent {
-
-  constructor(public collectionService: CollectionService) { }
 }

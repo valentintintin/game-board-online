@@ -4,13 +4,13 @@
   </nz-list-header>
 
   <nz-list-empty nzNoResult="Aucun joueur connecté" *ngIf="(userService.users$ | async).length === 0"></nz-list-empty>
-
-  <li nz-list-item *ngFor="let user of userService.users$ | async" nzNoFlex [style.color]="user.color">
-    <button (click)="userService.setPlayerShouldPlay(user)"
-            [class.bold]="user.shouldPlay"
-            [disabled]="user.shouldPlay">
-      <i nz-icon nzType="play-circle" nzTheme="outline" *ngIf="user.shouldPlay"></i>
-      {{ user.name }}
-    </button>
-  </li>
+<!---->
+<!--  <li nz-list-item *ngFor="let user of userService.users$ | async" nzNoFlex [style.color]="user.color">-->
+<!--    <button (click)="userService.setPlayerShouldPlay(user)"-->
+<!--            [class.bold]="user.shouldPlay"-->
+<!--            [disabled]="user.shouldPlay">-->
+<!--      <i nz-icon nzType="play-circle" nzTheme="outline" *ngIf="user.shouldPlay"></i>-->
+<!--      {{ user.name }}-->
+<!--    </button>-->
+<!--  </li>-->
 </ul>
