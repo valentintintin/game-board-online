@@ -1,0 +1,28 @@
+@import "../variables";
+
+nz-header,
+nz-footer {
+  background: $backgroundBlue;
+
+  * {
+    color: #fff;
+  }
+}
+
+nz-footer {
+  line-height: 1.5;
+}
+
+nz-content {
+  min-height: 120px;
+  padding: 20px;
+}
+
+nz-layout {
+  margin-bottom: 48px;
+}
+
+nz-layout nz-layout,
+nz-layout:last-child {
+  margin: 0;
+}

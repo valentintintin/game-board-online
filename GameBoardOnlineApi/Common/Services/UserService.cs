@@ -24,8 +24,14 @@ public class UserService(ILogger<UserService> logger, IConfiguration configurati
             };
 
             context.Add(user);
-            context.SaveChanges();
         }
+        else
+        {
+            user.Color = color;
+            context.Update(user);
+        }
+
+        context.SaveChanges();
 
         return user;
     }

@@ -1,0 +1,36 @@
+<h2>Salons</h2>
+
+<nz-spin [nzSpinning]="(rooms$ | async)?.loading">
+  <nz-table #table [nzData]="(rooms$ | async)?.data?.rooms ?? []">
+    <thead>
+    <tr>
+      <th>Date</th>
+      <th>Propriétaire</th>
+      <th>Joueurs</th>
+      <th>Jeu en cours</th>
+      <th>Action</th>
+    </tr>
+    </thead>
+    <tbody>
+      @for (data of table.data; track data.id) {
+        <tr>
+          <td>{{ data.createdAt | date:'short' }}</td>
+          <td>
+            @if (data.owner.id === (userService.userConnected$()?.id)) {
+              <i nz-icon nzType="user" nzTheme="outline" nz-tooltip="C'est toi"></i>
+            }
+            {{ data.owner.name }}
+          </td>
+          <td>{{ data.users.length }}</td>
+          <td>{{ data.currentGame?.name ?? 'Aucun' }}</td>
+          <td>
+            <a [routerLink]="['/room', data.id, 'game']">Rejoindre</a>&nbsp;
+            @if (data.owner.id === (userService.userConnected$()?.id)) {
+              <a [routerLink]="['/room', data.id, 'init']">Configurer</a>
+            }
+          </td>
+        </tr>
+      }
+  </tbody>
+  </nz-table>
+</nz-spin>

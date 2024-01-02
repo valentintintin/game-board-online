@@ -10,6 +10,13 @@ namespace GameBoardOnlineApi.GraphQl;
 
 public class Mutation
 {
+    [UseFirstOrDefault]
+    [UseProjection]
+    public IQueryable<User> Login(string name, string color, DataContext context, [Service] UserService userService)
+    {
+        return context.Users.FindByIdAsQueryable(userService.Create(name, color).Id);
+    }
+    
     [Authorize]
     [UseFirstOrDefault]
     [UseProjection]

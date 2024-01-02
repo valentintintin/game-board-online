@@ -9,11 +9,6 @@ namespace GameBoardOnlineApi.GraphQl;
 
 public class Query
 {
-    public string Login(string name, string color, [Service] UserService userService)
-    {
-        return userService.Login(userService.Create(name, color));
-    }
-
     [Authorize]
     [UseFirstOrDefault]
     [UseProjection]
@@ -21,7 +16,7 @@ public class Query
     {
         return context.Users.FindOrThrow(principal.GetUserId());
     }
-
+    
     [Authorize]
     [UseProjection]
     public IQueryable<Room> GetRooms(DataContext context)

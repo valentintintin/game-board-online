@@ -1,0 +1,255 @@
+# This file was generated. Do not edit manually.
+
+schema {
+  query: Query
+  mutation: Mutation
+  subscription: Subscription
+}
+
+type ChatMessage {
+  createdAt: DateTime!
+  id: UUID!
+  name: String!
+  room: Room!
+  user: User!
+}
+
+type CodeNamesGame {
+  createdAt: DateTime!
+  currentPlayer: Player
+  currentState: CodeNamesState
+  currentTeam: CodeNamesTeam
+  hints: [CodeNamesHint!]!
+  id: UUID!
+  name: String!
+  players: [CodeNamesPlayer!]!
+  state: String
+  teamBeginning: CodeNamesTeam!
+  type: String!
+  winnerPlayer: Player
+  winnerTeam: CodeNamesTeam
+  words: [CodeNamesWordCard!]!
+}
+
+type CodeNamesHint {
+  createdAt: DateTime!
+  game: Game!
+  id: UUID!
+  isInfinite: Boolean!
+  name: String!
+  nb: Int!
+  owner: Player
+  team: CodeNamesTeam!
+  word: String!
+}
+
+type CodeNamesMutations {
+  create(roomId: UUID!): CodeNamesGame
+  giveHint(data: CodeNamesGiveHintEventRequestInput!, gameId: UUID!): EventResponseOfCodeNamesGameAndCodeNamesPlayerAndCodeNamesActionAndCodeNamesHint
+  makeProposal(data: CodeNamesMakeProposalEventRequestInput!, gameId: UUID!): EventResponseOfCodeNamesGameAndCodeNamesPlayerAndCodeNamesActionAndCodeNamesWordCard
+  reset(roomId: UUID!): EventResponseOfCodeNamesGameAndCodeNamesPlayerAndCodeNamesActionAndObject
+}
+
+type CodeNamesPlayer {
+  game: Game!
+  id: UUID!
+  isGuesser: Boolean!
+  name: String!
+  team: CodeNamesTeam!
+  user: User!
+}
+
+type CodeNamesQuery {
+  get(gameId: UUID!): CodeNamesGame
+}
+
+type CodeNamesWordCard {
+  allowFlipOnce: Boolean!
+  canBeDeleted: Boolean!
+  canBeShownToOthers: Boolean!
+  canFlip: Boolean!
+  canMove: Boolean!
+  canRotate: Boolean!
+  game: Game!
+  height: Int!
+  id: UUID!
+  image: String!
+  imageBack: String
+  isFound: Boolean!
+  lastActorTouched: Player
+  name: String!
+  onlyForOwner: Boolean!
+  owner: Player
+  rotation: Int!
+  shadowColor: String
+  showBack: Boolean!
+  width: Int!
+  word: String!
+  x: Int!
+  y: Int!
+}
+
+type EventResponseOfCodeNamesGameAndCodeNamesPlayerAndCodeNamesActionAndCodeNamesHint {
+  action: CodeNamesAction!
+  data: CodeNamesHint
+  game: CodeNamesGame!
+  player: CodeNamesPlayer!
+}
+
+type EventResponseOfCodeNamesGameAndCodeNamesPlayerAndCodeNamesActionAndCodeNamesWordCard {
+  action: CodeNamesAction!
+  data: CodeNamesWordCard
+  game: CodeNamesGame!
+  player: CodeNamesPlayer!
+}
+
+type EventResponseOfCodeNamesGameAndCodeNamesPlayerAndCodeNamesActionAndObject {
+  action: CodeNamesAction!
+  game: CodeNamesGame!
+  player: CodeNamesPlayer!
+}
+
+type Game {
+  createdAt: DateTime!
+  id: UUID!
+  name: String!
+  players: [Player!]!
+  type: String!
+}
+
+type Mutation {
+  codeNames: CodeNamesMutations!
+  createRoom(name: String!): Room
+  joinRoom(roomId: UUID!): Room
+  leaveRoom(roomId: UUID!): Room
+  login(color: String!, name: String!): User
+  sendChatMessage(message: String!, roomId: UUID!): ChatMessage
+}
+
+type Player {
+  game: Game!
+  id: UUID!
+  name: String!
+  user: User!
+}
+
+type Query {
+  codeNames: CodeNamesQuery!
+  me: User
+  room(roomId: UUID!): Room
+  rooms: [Room!]!
+}
+
+type Room {
+  chatMessages(order: [ChatMessageSortInput!]): [ChatMessage!]!
+  createdAt: DateTime!
+  currentGame: Game
+  id: UUID!
+  name: String!
+  owner: User!
+  users: [User!]!
+}
+
+type Subscription {
+  chatMessage: ChatMessage
+  giveHint: EventResponseOfCodeNamesGameAndCodeNamesPlayerAndCodeNamesActionAndCodeNamesHint!
+  makeProposal: EventResponseOfCodeNamesGameAndCodeNamesPlayerAndCodeNamesActionAndCodeNamesWordCard!
+  reset: EventResponseOfCodeNamesGameAndCodeNamesPlayerAndCodeNamesActionAndObject!
+}
+
+type User {
+  color: String!
+  createdAt: DateTime!
+  id: UUID!
+  name: String!
+  players: [Player!]!
+  roomsCreated: [Room!]!
+  token: String
+}
+
+enum ApplyPolicy {
+  AFTER_RESOLVER
+  BEFORE_RESOLVER
+  VALIDATION
+}
+
+enum CodeNamesAction {
+  GIVE_HINT
+  MAKE_PROPOSAL
+  PASS
+  RESET
+}
+
+enum CodeNamesState {
+  END
+  HINT
+  LAST_PROPOSAL
+  PROPOSAL
+}
+
+enum CodeNamesTeam {
+  BLACK
+  BLUE
+  NEUTRAL
+  RED
+}
+
+enum SortEnumType {
+  ASC
+  DESC
+}
+
+"The `DateTime` scalar represents an ISO-8601 compliant date time type."
+scalar DateTime
+
+scalar UUID
+
+input ChatMessageSortInput {
+  createdAt: SortEnumType
+  id: SortEnumType
+  name: SortEnumType
+  room: RoomSortInput
+  user: UserSortInput
+}
+
+input CodeNamesGiveHintEventRequestInput {
+  hint: String!
+  nb: Int!
+}
+
+input CodeNamesMakeProposalEventRequestInput {
+  hintId: UUID!
+  word: String!
+}
+
+input GameSortInput {
+  createdAt: SortEnumType
+  currentPlayer: PlayerSortInput
+  id: SortEnumType
+  name: SortEnumType
+  state: SortEnumType
+  type: SortEnumType
+  winnerPlayer: PlayerSortInput
+}
+
+input PlayerSortInput {
+  game: GameSortInput
+  id: SortEnumType
+  name: SortEnumType
+  user: UserSortInput
+}
+
+input RoomSortInput {
+  createdAt: SortEnumType
+  currentGame: GameSortInput
+  id: SortEnumType
+  name: SortEnumType
+  owner: UserSortInput
+}
+
+input UserSortInput {
+  color: SortEnumType
+  createdAt: SortEnumType
+  id: SortEnumType
+  name: SortEnumType
+}

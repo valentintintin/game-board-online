@@ -11,5 +11,9 @@ public class RoomType : ObjectType<Room>
         descriptor
             .Field(w => w.CurrentGame)
             .Type<GameSimpleType>();
+
+        descriptor
+            .Field(w => w.ChatMessages)
+            .UseSorting();
     }
 }

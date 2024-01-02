@@ -1,6 +1,0 @@
-<form #ngForm="ngForm" [formGroup]="form" (ngSubmit)="sendMessage()">
-  <input formControlName="message" placeholder="Ton message" />
-  <button [disabled]="form.invalid" nz-button nzType="primary">
-    <i nz-icon nzType="send" nzTheme="outline"></i>
-  </button>
-</form>

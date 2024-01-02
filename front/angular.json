@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "game-board-online-gui": {
+    "game-board-online": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
@@ -22,10 +22,10 @@
         "@schematics/angular:interceptor": {
           "skipTests": true
         },
-        "@schematics/angular:module": {
+        "@schematics/angular:pipe": {
           "skipTests": true
         },
-        "@schematics/angular:pipe": {
+        "@schematics/angular:resolver": {
           "skipTests": true
         },
         "@schematics/angular:service": {
@@ -37,14 +37,16 @@
       "prefix": "app",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:browser",
+          "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "outputPath": "../server/public",
+            "outputPath": "dist/game-board-online",
             "index": "src/index.html",
-            "main": "src/main.ts",
-            "polyfills": "src/polyfills.ts",
+            "browser": "src/main.ts",
+            "polyfills": [
+              "zone.js"
+            ],
             "tsConfig": "tsconfig.app.json",
-            "aot": true,
+            "inlineStyleLanguage": "scss",
             "assets": [
               "src/favicon.ico",
               "src/assets",
@@ -62,69 +64,81 @@
           },
           "configurations": {
             "production": {
-              "fileReplacements": [
-                {
-                  "replace": "src/environments/environment.ts",
-                  "with": "src/environments/environment.prod.ts"
-                }
-              ],
-              "optimization": true,
-              "outputHashing": "all",
-              "sourceMap": false,
-              "namedChunks": false,
-              "extractLicenses": true,
-              "vendorChunk": false,
-              "buildOptimizer": true,
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "2mb",
-                  "maximumError": "5mb"
+                  "maximumWarning": "500kb",
+                  "maximumError": "1mb"
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "6kb",
-                  "maximumError": "10kb"
+                  "maximumWarning": "2kb",
+                  "maximumError": "4kb"
+                }
+              ],
+              "outputHashing": "all"
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.development.ts"
                 }
               ]
             }
-          }
+          },
+          "defaultConfiguration": "production"
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
-          "options": {
-            "browserTarget": "game-board-online-gui:build"
-          },
           "configurations": {
             "production": {
-              "browserTarget": "game-board-online-gui:build:production"
+              "buildTarget": "game-board-online:build:production"
+            },
+            "development": {
+              "buildTarget": "game-board-online:build:development"
             }
-          }
+          },
+          "defaultConfiguration": "development"
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "game-board-online-gui:build"
+            "buildTarget": "game-board-online:build"
           }
         },
-        "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
           "options": {
-            "tsConfig": [
-              "tsconfig.app.json",
-              "tsconfig.spec.json",
-              "e2e/tsconfig.json"
+            "polyfills": [
+              "zone.js",
+              "zone.js/testing"
             ],
-            "exclude": [
-              "**/node_modules/**"
-            ]
+            "tsConfig": "tsconfig.spec.json",
+            "inlineStyleLanguage": "scss",
+            "assets": [
+              "src/favicon.ico",
+              "src/assets",
+              {
+                "glob": "**/*",
+                "input": "./node_modules/@ant-design/icons-angular/src/inline-svg/",
+                "output": "/assets/"
+              }
+            ],
+            "styles": [
+              "./node_modules/ng-zorro-antd/ng-zorro-antd.min.css",
+              "src/styles.scss"
+            ],
+            "scripts": []
           }
         }
       }
     }
   },
-  "defaultProject": "game-board-online-gui",
   "cli": {
-    "analytics": "ec3299b5-566c-4094-a07a-904900dea3f8"
+    "analytics": false
   }
 }

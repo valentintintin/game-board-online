@@ -1,0 +1,19 @@
+<nz-spin [nzSpinning]="loading">
+  <form nz-form [nzLayout]="'inline'" [formGroup]="form" (ngSubmit)="sendMessage()">
+    <nz-form-item>
+      <nz-form-control>
+        <nz-input-group>
+          <input type="text" formControlName="message" nz-input placeholder="Message" nzSize="small" />
+        </nz-input-group>
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item>
+      <nz-form-control>
+        <button type="submit" [disabled]="form.invalid" nz-button nzType="primary" nzSize="small">
+          <i nz-icon nzType="send" nzTheme="outline"></i>
+        </button>
+      </nz-form-control>
+    </nz-form-item>
+  </form>
+</nz-spin>

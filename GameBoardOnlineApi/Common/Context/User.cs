@@ -16,7 +16,7 @@ public record User : IEntity, ICreated
     public required string Color { get; set; }
     
     public DateTime CreatedAt { get; set; }
-
+    
     public virtual ICollection<Room> RoomsCreated { get; set; } = [];
     public virtual ICollection<Player> Players { get; set; } = [];
 }

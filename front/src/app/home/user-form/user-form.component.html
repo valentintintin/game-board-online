@@ -1,0 +1,28 @@
+<h2>Qui est-tu ?</h2>
+
+<nz-spin [nzSpinning]="loading">
+  <form nz-form [nzLayout]="'inline'" [formGroup]="form" (ngSubmit)="login()">
+      <nz-form-item>
+          <nz-form-control>
+              <nz-input-group nzPrefixIcon="user">
+                <input type="text" formControlName="name" nz-input placeholder="Pseudo" nzSize="large" />
+              </nz-input-group>
+          </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+          <nz-form-control>
+  <!--            <nz-color-picker formControlName="color"></nz-color-picker>-->
+              <input type="color" formControlName="color" nz-input placeholder="Couleur" nzSize="large" />
+          </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+          <nz-form-control>
+              <button type="submit" [disabled]="form.invalid" nz-button nzType="primary" nzSize="large">
+                  Se connecter<i nz-icon nzType="right" nzTheme="outline"></i>
+              </button>
+          </nz-form-control>
+      </nz-form-item>
+  </form>
+</nz-spin>

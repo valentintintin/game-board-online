@@ -13,6 +13,15 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddCors(option =>
+{
+    option.AddDefaultPolicy(corsPolicyBuilder => corsPolicyBuilder
+        .AllowAnyOrigin()
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+    );
+});
+
 builder.Services.AddControllers();
     
 builder.Services
@@ -24,10 +33,12 @@ builder.Services
     .AddQueryType<Query>()
     .AddMutationType<Mutation>()
     .AddSubscriptionType<Subscription>()
+    .AddType<UserType>()
     .AddType<RoomType>()
     .AddType<GameSimpleType>()
     .AddType<CodeNamesWordCardType>()
-    .AddProjections();
+    .AddProjections()
+    .AddSorting();
 
 builder.Services.AddDbContextFactory<DataContext>(option =>
 {
@@ -99,6 +110,8 @@ if (app.Environment.IsDevelopment())
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseCors();
 
 app.UseWebSockets();
 

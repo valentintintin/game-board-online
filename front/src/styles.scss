@@ -1,42 +1,10 @@
-.ant-layout-header,
-.ant-layout-footer,
-.ant-layout-sider {
-  background: rgb(229, 246, 254);
-}
+.row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  justify-content: space-evenly;
 
-.ant-layout-footer,
-.ant-layout-sider {
-  text-align: center;
-}
-
-.ant-layout-sider {
-  text-align: center;
-  background: rgb(233, 233, 233);
-  padding: 10px;
-}
-
-.ant-layout-content {
-  text-align: center;
-  background: rgb(252, 248, 248);
-  min-height: calc(100vh - 64px);
-}
-
-.pointer {
-  cursor: pointer;
-}
-
-.ant-layout-sider-zero-width-trigger {
-  top: -55px;
-}
-
-.ant-layout-sider.left .ant-layout-sider-zero-width-trigger {
-  left: 0;
-}
-
-.ant-layout-sider.right .ant-layout-sider-zero-width-trigger {
-  right: 0;
-}
-
-.bold {
-  font-weight: bold;
+  > * {
+    margin: 10px;
+  }
 }
