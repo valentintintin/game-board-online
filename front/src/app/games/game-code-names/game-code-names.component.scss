@@ -1,0 +1,19 @@
+@import "./code-names-variables";
+
+.currentPlayer {
+  text-align: center;
+  font-size: 16px;
+}
+
+.words {
+  margin: auto !important;
+  max-width: 850px;
+}
+
+.blue {
+  color: $teamBlue;
+}
+
+.red {
+  color: $teamRed;
+}

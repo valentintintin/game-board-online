@@ -57,7 +57,7 @@ public class Mutation
         var room = context.Rooms.FindOrThrow(roomId);
         var user = context.Users.FindOrThrow(claimsPrincipal.GetUserId());
 
-        var chatMessage = roomService.SendChatMessage(room, user, message);
+        var chatMessage = roomService.SendChatMessage(room, message, user);
 
         await sender.SendAsync(nameof(Subscription.ChatMessage), chatMessage);
 

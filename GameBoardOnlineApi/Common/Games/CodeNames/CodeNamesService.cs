@@ -11,7 +11,7 @@ using Path = System.IO.Path;
 
 namespace Common.Games.CodeNames;
 
-public class CodeNamesService(ILogger<GameService<CodeNamesGame, CodeNamesPlayer, CodeNamesAction>> logger, DataContext context) : GameService<CodeNamesGame, CodeNamesPlayer, CodeNamesAction>(logger, context)
+public class CodeNamesService(ILogger<GameService<CodeNamesGame, CodeNamesPlayer, CodeNamesAction>> logger, DataContext context, RoomService roomService) : GameService<CodeNamesGame, CodeNamesPlayer, CodeNamesAction>(logger, context, roomService)
 {
     protected override CodeNamesGame InitializeGameForRoom(Room room, Dictionary<string, object?>? data)
     {
@@ -21,7 +21,7 @@ public class CodeNamesService(ILogger<GameService<CodeNamesGame, CodeNamesPlayer
             Enum.Parse<CodeNamesTeam>(forceTeam!.ToString()!) : 
             Random.Shared.Next() > 0.5 ? CodeNamesTeam.Blue : CodeNamesTeam.Red;
         
-        CodeNamesGame game = new(teamBeginning);
+        CodeNamesGame game = new(room, teamBeginning);
         game.Words = GetWords(game);
 
         game.Players = room.Users
@@ -29,6 +29,8 @@ public class CodeNamesService(ILogger<GameService<CodeNamesGame, CodeNamesPlayer
             .Select((u, i) => new CodeNamesPlayer(game, u, i % 2 == 0 ? CodeNamesTeam.Blue : CodeNamesTeam.Red, i < 2))
             .Cast<Player>()
             .ToList();
+        
+        SaveGame(game);
         
         ChangeCurrentPlayer(game, teamBeginning);
         
@@ -57,14 +59,18 @@ public class CodeNamesService(ILogger<GameService<CodeNamesGame, CodeNamesPlayer
         }
 
         var card = game.Words.FirstOrDefault(e => e.Word.Trim().ToLower() == data.Word.Trim().ToLower());
-        var hint = game.Hints.AsQueryable().FindOrThrow(data.HintId);
+        var hint = data.HintId.HasValue
+            ? game.Hints.AsQueryable().FindOrThrow(data.HintId)
+            : game.Hints.AsQueryable()
+                .OrderByDescending(h => h.CreatedAt)
+                .First(h => h.Team == game.CurrentTeam);
 
         if (((CodeNamesPlayer)hint.Owner!).Team != player.Team)
         {
             throw new ForbiddenGameActionException("deviner car ce n'est pas votre indice");   
         }
                 
-        if (hint is { IsInfinite: false, Nb: 0 })
+        if (hint is { Type: CodeNamesHint.HintType.Nb, Nb: 0 })
         {
             throw new ForbiddenGameActionException("deviner car l'indice ne le permet pas");
         }
@@ -79,6 +85,8 @@ public class CodeNamesService(ILogger<GameService<CodeNamesGame, CodeNamesPlayer
         if (card.Team == player.Team)
         {
             hint.Nb--;
+            
+            roomService.SendChatMessage(game.Room, $"{player.Name} a trouvé le mot {card.Word}");
 
             if (game.GetCurrentState() == CodeNamesState.LastProposal)
             {
@@ -91,30 +99,29 @@ public class CodeNamesService(ILogger<GameService<CodeNamesGame, CodeNamesPlayer
         }
         else if (card.Team == CodeNamesTeam.Black)
         {
-            game.SetState(CodeNamesState.End);
-            game.CurrentTeam = null;
-            game.CurrentPlayer = null;
+            game.WinnerTeam = game.CurrentTeam == CodeNamesTeam.Blue ? CodeNamesTeam.Red : CodeNamesTeam.Blue;
         }
         else
         {
+            roomService.SendChatMessage(game.Room, $"{player.Name} a trouvé le mot {card.Word} mais il n'est pas pour son équipe");
+            
             ChangeCurrentPlayer(game);
         }
 
         var blueWords = game.Words.Where(w => w.Team == CodeNamesTeam.Blue).ToList();
         var redWords = game.Words.Where(w => w.Team == CodeNamesTeam.Red).ToList();
-        if (blueWords.Count == blueWords.Count(w => w.IsFound))
+        
+        game.WinnerTeam ??= blueWords.Count == blueWords.Count(w => w.IsFound) ? 
+            CodeNamesTeam.Blue : redWords.Count == redWords.Count(w => w.IsFound) ? 
+                CodeNamesTeam.Red : null;
+        
+        if (game.WinnerTeam.HasValue)
         {
             game.SetState(CodeNamesState.End);
             game.CurrentTeam = null;
             game.CurrentPlayer = null;
-            game.WinnerTeam = CodeNamesTeam.Blue;
-        }
-        else if (redWords.Count == redWords.Count(w => w.IsFound))
-        {
-            game.SetState(CodeNamesState.End);
-            game.CurrentTeam = null;
-            game.CurrentPlayer = null;
-            game.WinnerTeam = CodeNamesTeam.Red;
+            
+            roomService.SendChatMessage(game.Room, $"L'équipe {game.WinnerTeam} a gagné !");
         }
         
         SaveGame(game);
@@ -130,6 +137,8 @@ public class CodeNamesService(ILogger<GameService<CodeNamesGame, CodeNamesPlayer
 
     public EventResponse<CodeNamesGame, CodeNamesPlayer, CodeNamesAction, CodeNamesHint> GiveHint(CodeNamesGame game, User user, CodeNamesGiveHintEventRequest data)
     {
+        game = (CodeNamesGame) context.Games.FindOrThrow(game.Id);
+        
         CheckState(game, CodeNamesState.Hint);
         
         var player = GetPlayerForUser(game, user);
@@ -149,13 +158,19 @@ public class CodeNamesService(ILogger<GameService<CodeNamesGame, CodeNamesPlayer
             throw new ForbiddenGameActionException("Il y a un mot identique à cet indice");
         }
 
-        var hint = new CodeNamesHint(game, player, data.Hint, data.Nb);
+        var hint = new CodeNamesHint(game, player, data.Hint, data.Type, data.Nb);
+
+        context.Add(hint);
+        context.SaveChanges();
         
-        game.CurrentPlayer = null;
-        game.Hints.Add(hint);
-        game.SetState(CodeNamesState.Proposal);
+        // game.CurrentPlayer = null;
+        // SaveGame(game);
         
-        SaveGame(game);
+        // game.SetState(CodeNamesState.Proposal);
+        
+        // SaveGame(game);
+        
+        // roomService.SendChatMessage(game.Room, $"C'est au tour de l'équipe {game.CurrentTeam} de deviner {hint.Nb} mots avec l'indice {hint.Word}");
         
         return new EventResponse<CodeNamesGame, CodeNamesPlayer, CodeNamesAction, CodeNamesHint>
         {
@@ -185,6 +200,8 @@ public class CodeNamesService(ILogger<GameService<CodeNamesGame, CodeNamesPlayer
         ChangeCurrentPlayer(game);
         
         SaveGame(game);
+        
+        roomService.SendChatMessage(game.Room, $"L'équipe {game.CurrentTeam} a fini de deviner");
         
         return new EventResponse<CodeNamesGame, CodeNamesPlayer, CodeNamesAction, object>
         {
@@ -269,5 +286,6 @@ public class CodeNamesService(ILogger<GameService<CodeNamesGame, CodeNamesPlayer
         game.CurrentTeam = forceTeam ?? (game.CurrentTeam == CodeNamesTeam.Red ? CodeNamesTeam.Blue : CodeNamesTeam.Red);
         game.CurrentPlayer = game.GetPlayers().First(p => !p.IsGuesser && p.Team == game.CurrentTeam);
         game.SetState(CodeNamesState.Hint);
+        roomService.SendChatMessage(game.Room, $"C'est au tour du joueur {game.CurrentPlayer.Name} de donner un indice");
     }
 }

@@ -1,4 +1,4 @@
-import {Component, inject, OnDestroy} from '@angular/core';
+import {Component, inject, Input, OnDestroy} from '@angular/core';
 import {FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators} from "@angular/forms";
 import {NzButtonComponent} from "ng-zorro-antd/button";
 import {NzFormControlComponent, NzFormDirective, NzFormItemComponent} from "ng-zorro-antd/form";
@@ -32,17 +32,11 @@ import {AsyncPipe} from "@angular/common";
 })
 export class ChatInputComponent implements OnDestroy {
 
-  private query = gql`
-    mutation sendMessage($roomId: UUID!, $message: String!) {
-      sendChatMessage(roomId: $roomId, message: $message) {
-        id
-      }
-    }
-  `;
+  private readonly subscription = new Subscription();
 
   private sendMessageQuery = inject(SendMessageGQL);
-  private route = inject(ActivatedRoute);
-  private readonly subscription = new Subscription();
+
+  @Input({required: true}) roomId!: string | null;
 
   form = new FormGroup({
     message: new FormControl('', [Validators.required, Validators.minLength(2)]),
@@ -54,6 +48,13 @@ export class ChatInputComponent implements OnDestroy {
   }
 
   sendMessage() {
+    gql`
+    mutation sendMessage($roomId: UUID!, $message: String!) {
+      sendChatMessage(roomId: $roomId, message: $message) {
+        id
+      }
+    }`;
+
     if (this.form.invalid) {
       return;
     }
@@ -62,7 +63,7 @@ export class ChatInputComponent implements OnDestroy {
     this.subscription.add(
       this.sendMessageQuery.mutate({
         message: this.form.value.message ?? '',
-        roomId: this.route.snapshot.paramMap.get('id')
+        roomId: this.roomId
       }, {
         refetchQueries: ['getMessages']
       }).subscribe({

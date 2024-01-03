@@ -1,10 +1,11 @@
 using Common.Context;
 using Common.Exceptions;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace Common.Services;
 
-public abstract class GameService<TGame, TPlayer, TAction>(ILogger<GameService<TGame, TPlayer, TAction>> logger, DataContext context) : AService(logger)
+public abstract class GameService<TGame, TPlayer, TAction>(ILogger<GameService<TGame, TPlayer, TAction>> logger, DataContext context, RoomService roomService) : AService(logger)
     where TPlayer : Player where TGame : Game where TAction : Enum
 {
     public TGame InitializeGame(Room room, Dictionary<string, object?>? data = null)
@@ -12,8 +13,11 @@ public abstract class GameService<TGame, TPlayer, TAction>(ILogger<GameService<T
         var game = InitializeGameForRoom(room, data);
         
         room.CurrentGame = game;
+        room.Games.Add(game);
 
         SaveGame(game);
+        
+        roomService.SendChatMessage(room, $"Le jeu commence !");
         
         return game;
     }

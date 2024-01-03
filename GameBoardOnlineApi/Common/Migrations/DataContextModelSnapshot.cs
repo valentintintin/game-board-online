@@ -38,7 +38,7 @@ namespace Common.Migrations
                     b.Property<Guid>("RoomId")
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid>("UserId")
+                    b.Property<Guid?>("UserId")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
@@ -156,6 +156,9 @@ namespace Common.Migrations
                         .HasMaxLength(64)
                         .HasColumnType("TEXT");
 
+                    b.Property<Guid>("RoomId")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("State")
                         .HasColumnType("TEXT");
 
@@ -171,6 +174,8 @@ namespace Common.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CurrentPlayerId");
+
+                    b.HasIndex("RoomId");
 
                     b.HasIndex("WinnerPlayerId");
 
@@ -337,8 +342,9 @@ namespace Common.Migrations
                 {
                     b.HasBaseType("Common.Context.Game");
 
-                    b.Property<int?>("CurrentTeam")
-                        .HasColumnType("INTEGER");
+                    b.Property<string>("CurrentTeam")
+                        .HasMaxLength(16)
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("TeamBeginning")
                         .IsRequired()
@@ -371,10 +377,10 @@ namespace Common.Migrations
                     b.Property<Guid?>("CodeNamesGameId")
                         .HasColumnType("TEXT");
 
-                    b.Property<bool>("IsInfinite")
+                    b.Property<int>("Nb")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("Nb")
+                    b.Property<int>("Type")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Word")
@@ -396,9 +402,7 @@ namespace Common.Migrations
 
                     b.HasOne("Common.Context.User", "User")
                         .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("UserId");
 
                     b.Navigation("Room");
 
@@ -434,11 +438,19 @@ namespace Common.Migrations
                         .WithMany()
                         .HasForeignKey("CurrentPlayerId");
 
+                    b.HasOne("Common.Context.Room", "Room")
+                        .WithMany("Games")
+                        .HasForeignKey("RoomId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("Common.Context.Player", "WinnerPlayer")
                         .WithMany()
                         .HasForeignKey("WinnerPlayerId");
 
                     b.Navigation("CurrentPlayer");
+
+                    b.Navigation("Room");
 
                     b.Navigation("WinnerPlayer");
                 });
@@ -523,6 +535,8 @@ namespace Common.Migrations
             modelBuilder.Entity("Common.Context.Room", b =>
                 {
                     b.Navigation("ChatMessages");
+
+                    b.Navigation("Games");
 
                     b.Navigation("Users");
                 });

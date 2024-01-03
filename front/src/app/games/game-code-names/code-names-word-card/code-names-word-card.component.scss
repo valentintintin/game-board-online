@@ -1,0 +1,40 @@
+@import "../code-names-variables";
+
+div {
+  border: 1px solid $teamNeutral;
+  background: $teamNeutral;
+
+  width: 150px;
+  height: 60px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.selectable {
+  cursor: pointer;
+
+  &:hover {
+    border: 5px dashed purple;
+  }
+}
+
+.blue {
+  background: $teamBlue;
+}
+
+.red {
+  background: $teamRed;
+}
+
+.neutral {
+  background: $teamNeutral;
+}
+
+.black {
+  background: $teamBlack;
+}

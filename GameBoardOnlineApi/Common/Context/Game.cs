@@ -4,7 +4,7 @@ using Common.Models.Interfaces;
 
 namespace Common.Context;
 
-public record Game : IEntity, ICreated
+public abstract record Game : IEntity, ICreated
 {
     public Guid Id { get; set; }
     public DateTime CreatedAt { get; set; }
@@ -20,6 +20,7 @@ public record Game : IEntity, ICreated
     
     public virtual Player? CurrentPlayer { get; set; }
     public virtual Player? WinnerPlayer { get; set; }
+    public virtual required Room Room { get; set; }
 
     public IEnumerable<T> GetPlayers<T>()
     {

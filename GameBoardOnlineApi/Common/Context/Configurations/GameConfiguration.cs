@@ -28,5 +28,9 @@ public class GameConfiguration : IEntityTypeConfiguration<Game>
         builder
             .HasOne(g => g.WinnerPlayer)
             .WithMany();
+
+        builder
+            .HasOne(g => g.Room)
+            .WithMany(r => r.Games);
     }
 }

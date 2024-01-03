@@ -43,8 +43,10 @@ export class ChatComponent {
   private getMessagesGQL = inject(GetMessagesGQL);
   private route = inject(ActivatedRoute);
 
+  roomId = this.route.snapshot.paramMap.get('roomId');
+
   messages$ = this.getMessagesGQL.watch({
-    roomId: this.route.snapshot.paramMap.get('id')
+    roomId: this.roomId,
   }).valueChanges.pipe(
     map(result => result.data.room?.chatMessages ?? []),
   );

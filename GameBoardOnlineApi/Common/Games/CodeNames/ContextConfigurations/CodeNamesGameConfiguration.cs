@@ -9,6 +9,9 @@ public class CodeNamesGameConfiguration : IEntityTypeConfiguration<CodeNamesGame
 {
     public void Configure(EntityTypeBuilder<CodeNamesGame> builder)
     {
+        builder.Property(g => g.CurrentTeam)
+            .EnumToString(16);
+        
         builder.Property(g => g.TeamBeginning)
             .EnumToString(16);
     }

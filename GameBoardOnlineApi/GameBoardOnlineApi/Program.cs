@@ -28,7 +28,7 @@ builder.Services
     .AddGraphQLServer()
     .AddInMemorySubscriptions()
     .AddAuthorization()
-    .RegisterDbContext<DataContext>()
+    .RegisterDbContext<DataContext>(DbContextKind.Pooled)
     .AddErrorFilter<ErrorFilter>()
     .AddQueryType<Query>()
     .AddMutationType<Mutation>()
@@ -36,17 +36,22 @@ builder.Services
     .AddType<UserType>()
     .AddType<RoomType>()
     .AddType<GameSimpleType>()
+    .AddType<CodeNamesGameType>()
+    .AddType<CodeNamesPlayerType>()
     .AddType<CodeNamesWordCardType>()
     .AddProjections()
     .AddSorting();
 
-builder.Services.AddDbContextFactory<DataContext>(option =>
+builder.Services.AddPooledDbContextFactory<DataContext>(option =>
 {
-    option.UseSqlite(
-        builder.Configuration.GetConnectionString("Default")
-    )
-    .UseLazyLoadingProxies();
+    option.UseNpgsql(
+            builder.Configuration.GetConnectionString("Default")
+        )
+        .UseLazyLoadingProxies()
+        .EnableSensitiveDataLogging();
 });
+
+builder.Services.AddScoped<DataContext>(service => service.GetRequiredService<IDbContextFactory<DataContext>>().CreateDbContext());
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>

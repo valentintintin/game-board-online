@@ -4,5 +4,5 @@ public record CodeNamesMakeProposalEventRequest
 {
     public string Word { get; init; } = null!;
 
-    public Guid HintId { get; init; }
+    public Guid? HintId { get; init; }
 }

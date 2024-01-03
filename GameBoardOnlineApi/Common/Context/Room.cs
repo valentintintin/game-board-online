@@ -18,5 +18,6 @@ public record Room : IEntity, ICreated
     public virtual Game? CurrentGame { get; set; }
     
     public virtual ICollection<User> Users { get; set; } = [];
+    public virtual ICollection<Game> Games { get; set; } = [];
     public virtual ICollection<ChatMessage> ChatMessages { get; set; } = [];
 }

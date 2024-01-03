@@ -19,9 +19,10 @@ public record CodeNamesGame : Game
     }
 
     [SetsRequiredMembers]
-    public CodeNamesGame(CodeNamesTeam teamBeginning)
+    public CodeNamesGame(Room room, CodeNamesTeam teamBeginning)
     {
         Name = "CodeNames";
+        Room = room;
         TeamBeginning = teamBeginning;
         CurrentTeam = teamBeginning;
         SetState(CodeNamesState.Hint);

@@ -8,6 +8,15 @@ public class CodeNamesWordCardType : ObjectType<CodeNamesWordCard>
     {
         base.Configure(descriptor);
 
-        descriptor.Field(w => w.Team).Ignore();
+        descriptor.Field(w => w.ShowBack).IsProjected(); // IsFound fetch data
+
+        descriptor
+            .Field(w => w.Team)
+            .Type<EnumType<CodeNamesTeam>>()
+            .Resolve(context =>
+            {
+                var card = context.Parent<CodeNamesWordCard>();
+                return card.IsFound ? card.Team : null;
+            });
     }
 }

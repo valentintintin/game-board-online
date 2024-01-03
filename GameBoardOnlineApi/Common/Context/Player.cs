@@ -4,7 +4,7 @@ using Common.Models.Interfaces;
 
 namespace Common.Context;
 
-public record Player : IEntity
+public abstract record Player : IEntity
 {
     public Guid Id { get; set; }
 

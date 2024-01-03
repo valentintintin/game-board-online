@@ -19,7 +19,7 @@ export const routes: Routes = [
     canActivate: [connectedGuard]
   },
   {
-    path: 'room/:id',
+    path: 'room/:roomId',
     title: 'Salon - GameBoardOnline',
     component: RoomComponent,
     canActivate: [connectedGuard],
@@ -31,7 +31,7 @@ export const routes: Routes = [
         component: RoomInitComponent
       },
       {
-        path: 'game',
+        path: 'game/:gameId',
         title: 'Jeu - GameBoardOnline',
         component: GameComponent
       }

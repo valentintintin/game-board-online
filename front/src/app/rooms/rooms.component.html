@@ -24,7 +24,9 @@
           <td>{{ data.users.length }}</td>
           <td>{{ data.currentGame?.name ?? 'Aucun' }}</td>
           <td>
-            <a [routerLink]="['/room', data.id, 'game']">Rejoindre</a>&nbsp;
+            @if (data.currentGame) {
+              <a [routerLink]="['/room', data.id, 'game', data.currentGame.id]">Rejoindre</a>&nbsp;
+            }
             @if (data.owner.id === (userService.userConnected$()?.id)) {
               <a [routerLink]="['/room', data.id, 'init']">Configurer</a>
             }

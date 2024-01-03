@@ -40,7 +40,7 @@ public class RoomService(ILogger<RoomService> logger, DataContext context) : ASe
         return room;
     }
 
-    public ChatMessage SendChatMessage(Room room, User user, string message)
+    public ChatMessage SendChatMessage(Room room, string message, User? user = null)
     {
         var chatMessage = new ChatMessage
         {

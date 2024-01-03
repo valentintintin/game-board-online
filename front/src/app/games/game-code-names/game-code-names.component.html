@@ -1,0 +1,39 @@
+<h2>Code Names !</h2>
+
+<nz-spin [nzSpinning]="(data$ | async)?.loading">
+  <div class="currentPlayer">
+    @switch (state$ | async) {
+      @case(CodeNamesState.Hint) {
+        <b [style.color]="(currentTeam$ | async)?.toLowerCase()">
+          {{ (currentPlayer$ | async)?.name }}
+        </b> doit donner un indice
+      }
+      @case(CodeNamesState.Proposal) {
+        <b [style.color]="(currentTeam$ | async)?.toLowerCase()">
+          L'équipe {{ (currentTeam$ | async)?.toLowerCase() }}
+        </b> doit deviner
+      }
+      @case(CodeNamesState.LastProposal) {
+        <b [style.color]="(currentTeam$ | async)?.toLowerCase()">
+          L'équipe {{ (currentTeam$ | async)?.toLowerCase() }}
+        </b> peut encore deviner <b>1</b> mot
+      }
+      @case(CodeNamesState.End) {
+        <b [style.color]="(currentTeam$ | async)?.toLowerCase()">
+          L'équipe {{ (data$ | async)?.data?.codeNames?.get?.winnerTeam?.toLowerCase() }}
+        </b> a gagné !
+      }
+    }
+  </div>
+
+  <div nz-row class="words" [nzGutter]="[16, 16]">
+    @for (word of (game$ | async)?.words ?? []; track word.id) {
+      <app-code-names-word-card [word]="word"
+                                (selected)="selectWord($event)"
+                                [alwaysShowWord]="(state$ | async) === CodeNamesState.End"
+                                nz-col [nzSpan]="24 / 5"></app-code-names-word-card>
+    }
+  </div>
+
+  <app-code-names-hint-input [game]="game$ | async"></app-code-names-hint-input>
+</nz-spin>

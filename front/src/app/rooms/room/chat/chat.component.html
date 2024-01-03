@@ -3,13 +3,15 @@
 <nz-list nzSize="small">
   @for (message of (messages$ | async); track message.id) {
     <nz-list-item>
-      <span [style.color]="message.user.color">{{ message.user.name }} - {{ message.createdAt | date:'shortTime' }}</span>
-      <br />
-      {{ message.name }}
+      <div>
+        <span [style.color]="message.user?.color ?? 'black'">{{ message.user?.name ?? "Système" }} à {{ message.createdAt | date:'mediumTime' }}</span>
+        <br />
+        {{ message.name }}
+      </div>
     </nz-list-item>
   }
 </nz-list>
 
 <div class="input">
-  <app-chat-input></app-chat-input>
+  <app-chat-input [roomId]="roomId"></app-chat-input>
 </div>

@@ -32,7 +32,7 @@ export type ChatMessage = {
   id: Scalars['UUID']['output'];
   name: Scalars['String']['output'];
   room: Room;
-  user: User;
+  user?: Maybe<User>;
 };
 
 export type ChatMessageSortInput = {
@@ -60,6 +60,7 @@ export type CodeNamesGame = {
   id: Scalars['UUID']['output'];
   name: Scalars['String']['output'];
   players: Array<CodeNamesPlayer>;
+  room: Room;
   state?: Maybe<Scalars['String']['output']>;
   teamBeginning: CodeNamesTeam;
   type: Scalars['String']['output'];
@@ -71,6 +72,7 @@ export type CodeNamesGame = {
 export type CodeNamesGiveHintEventRequestInput = {
   hint: Scalars['String']['input'];
   nb: Scalars['Int']['input'];
+  type: HintType;
 };
 
 export type CodeNamesHint = {
@@ -78,16 +80,16 @@ export type CodeNamesHint = {
   createdAt: Scalars['DateTime']['output'];
   game: Game;
   id: Scalars['UUID']['output'];
-  isInfinite: Scalars['Boolean']['output'];
   name: Scalars['String']['output'];
   nb: Scalars['Int']['output'];
   owner?: Maybe<Player>;
   team: CodeNamesTeam;
+  type: HintType;
   word: Scalars['String']['output'];
 };
 
 export type CodeNamesMakeProposalEventRequestInput = {
-  hintId: Scalars['UUID']['input'];
+  hintId?: InputMaybe<Scalars['UUID']['input']>;
   word: Scalars['String']['input'];
 };
 
@@ -176,6 +178,7 @@ export type CodeNamesWordCard = {
   rotation: Scalars['Int']['output'];
   shadowColor?: Maybe<Scalars['String']['output']>;
   showBack: Scalars['Boolean']['output'];
+  team?: Maybe<CodeNamesTeam>;
   width: Scalars['Int']['output'];
   word: Scalars['String']['output'];
   x: Scalars['Int']['output'];
@@ -219,10 +222,17 @@ export type GameSortInput = {
   currentPlayer?: InputMaybe<PlayerSortInput>;
   id?: InputMaybe<SortEnumType>;
   name?: InputMaybe<SortEnumType>;
+  room?: InputMaybe<RoomSortInput>;
   state?: InputMaybe<SortEnumType>;
   type?: InputMaybe<SortEnumType>;
   winnerPlayer?: InputMaybe<PlayerSortInput>;
 };
+
+export enum HintType {
+  Infinite = 'INFINITE',
+  Nb = 'NB',
+  Zero = 'ZERO'
+}
 
 export type Mutation = {
   __typename?: 'Mutation';
@@ -294,6 +304,7 @@ export type Room = {
   chatMessages: Array<ChatMessage>;
   createdAt: Scalars['DateTime']['output'];
   currentGame?: Maybe<Game>;
+  games: Array<Game>;
   id: Scalars['UUID']['output'];
   name: Scalars['String']['output'];
   owner: User;
@@ -344,6 +355,31 @@ export type UserSortInput = {
   name?: InputMaybe<SortEnumType>;
 };
 
+export type GiveHintQueryMutationVariables = Exact<{
+  gameId: Scalars['UUID']['input'];
+  hint: Scalars['String']['input'];
+  nb: Scalars['Int']['input'];
+  type: HintType;
+}>;
+
+
+export type GiveHintQueryMutation = { __typename?: 'Mutation', codeNames: { __typename?: 'CodeNamesMutations', giveHint?: { __typename?: 'EventResponseOfCodeNamesGameAndCodeNamesPlayerAndCodeNamesActionAndCodeNamesHint', action: CodeNamesAction } | null } };
+
+export type GetCodeNamesQueryVariables = Exact<{
+  gameId: Scalars['UUID']['input'];
+}>;
+
+
+export type GetCodeNamesQuery = { __typename?: 'Query', codeNames: { __typename?: 'CodeNamesQuery', get?: { __typename?: 'CodeNamesGame', id: any, currentState?: CodeNamesState | null, currentTeam?: CodeNamesTeam | null, winnerTeam?: CodeNamesTeam | null, currentPlayer?: { __typename?: 'Player', id: any, name: string } | null, players: Array<{ __typename?: 'CodeNamesPlayer', id: any, name: string, team: CodeNamesTeam }>, words: Array<{ __typename?: 'CodeNamesWordCard', id: any, word: string, team?: CodeNamesTeam | null, isFound: boolean }>, hints: Array<{ __typename?: 'CodeNamesHint', id: any, team: CodeNamesTeam, word: string, nb: number, owner?: { __typename?: 'Player', id: any, name: string } | null }> } | null } };
+
+export type CodeNameMakeProposalMutationVariables = Exact<{
+  gameId: Scalars['UUID']['input'];
+  word: Scalars['String']['input'];
+}>;
+
+
+export type CodeNameMakeProposalMutation = { __typename?: 'Mutation', codeNames: { __typename?: 'CodeNamesMutations', makeProposal?: { __typename?: 'EventResponseOfCodeNamesGameAndCodeNamesPlayerAndCodeNamesActionAndCodeNamesWordCard', action: CodeNamesAction } | null } };
+
 export type SendMessageMutationVariables = Exact<{
   roomId: Scalars['UUID']['input'];
   message: Scalars['String']['input'];
@@ -357,7 +393,7 @@ export type GetMessagesQueryVariables = Exact<{
 }>;
 
 
-export type GetMessagesQuery = { __typename?: 'Query', room?: { __typename?: 'Room', id: any, chatMessages: Array<{ __typename?: 'ChatMessage', id: any, createdAt: any, name: string, user: { __typename?: 'User', id: any, name: string, color: string } }> } | null };
+export type GetMessagesQuery = { __typename?: 'Query', room?: { __typename?: 'Room', id: any, chatMessages: Array<{ __typename?: 'ChatMessage', id: any, createdAt: any, name: string, user?: { __typename?: 'User', id: any, name: string, color: string } | null }> } | null };
 
 export type RoomsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -377,6 +413,94 @@ export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type MeQuery = { __typename?: 'Query', me?: { __typename?: 'User', id: any, name: string, color: string } | null };
 
+export const GiveHintQueryDocument = gql`
+    mutation giveHintQuery($gameId: UUID!, $hint: String!, $nb: Int!, $type: HintType!) {
+  codeNames {
+    giveHint(gameId: $gameId, data: {hint: $hint, nb: $nb, type: $type}) {
+      action
+    }
+  }
+}
+    `;
+
+  @Injectable({
+    providedIn: 'root'
+  })
+  export class GiveHintQueryGQL extends Apollo.Mutation<GiveHintQueryMutation, GiveHintQueryMutationVariables> {
+    override document = GiveHintQueryDocument;
+    
+    constructor(apollo: Apollo.Apollo) {
+      super(apollo);
+    }
+  }
+export const GetCodeNamesDocument = gql`
+    query getCodeNames($gameId: UUID!) {
+  codeNames {
+    get(gameId: $gameId) {
+      id
+      currentState
+      currentTeam
+      winnerTeam
+      currentPlayer {
+        id
+        name
+      }
+      players {
+        id
+        name
+        team
+      }
+      words {
+        id
+        word
+        team
+        isFound
+      }
+      hints {
+        id
+        team
+        word
+        nb
+        owner {
+          id
+          name
+        }
+      }
+    }
+  }
+}
+    `;
+
+  @Injectable({
+    providedIn: 'root'
+  })
+  export class GetCodeNamesGQL extends Apollo.Query<GetCodeNamesQuery, GetCodeNamesQueryVariables> {
+    override document = GetCodeNamesDocument;
+    
+    constructor(apollo: Apollo.Apollo) {
+      super(apollo);
+    }
+  }
+export const CodeNameMakeProposalDocument = gql`
+    mutation codeNameMakeProposal($gameId: UUID!, $word: String!) {
+  codeNames {
+    makeProposal(gameId: $gameId, data: {word: $word}) {
+      action
+    }
+  }
+}
+    `;
+
+  @Injectable({
+    providedIn: 'root'
+  })
+  export class CodeNameMakeProposalGQL extends Apollo.Mutation<CodeNameMakeProposalMutation, CodeNameMakeProposalMutationVariables> {
+    override document = CodeNameMakeProposalDocument;
+    
+    constructor(apollo: Apollo.Apollo) {
+      super(apollo);
+    }
+  }
 export const SendMessageDocument = gql`
     mutation sendMessage($roomId: UUID!, $message: String!) {
   sendChatMessage(roomId: $roomId, message: $message) {

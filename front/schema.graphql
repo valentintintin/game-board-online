@@ -11,7 +11,7 @@ type ChatMessage {
   id: UUID!
   name: String!
   room: Room!
-  user: User!
+  user: User
 }
 
 type CodeNamesGame {
@@ -23,6 +23,7 @@ type CodeNamesGame {
   id: UUID!
   name: String!
   players: [CodeNamesPlayer!]!
+  room: Room!
   state: String
   teamBeginning: CodeNamesTeam!
   type: String!
@@ -35,11 +36,11 @@ type CodeNamesHint {
   createdAt: DateTime!
   game: Game!
   id: UUID!
-  isInfinite: Boolean!
   name: String!
   nb: Int!
   owner: Player
   team: CodeNamesTeam!
+  type: HintType!
   word: String!
 }
 
@@ -83,6 +84,7 @@ type CodeNamesWordCard {
   rotation: Int!
   shadowColor: String
   showBack: Boolean!
+  team: CodeNamesTeam
   width: Int!
   word: String!
   x: Int!
@@ -144,6 +146,7 @@ type Room {
   chatMessages(order: [ChatMessageSortInput!]): [ChatMessage!]!
   createdAt: DateTime!
   currentGame: Game
+  games: [Game!]!
   id: UUID!
   name: String!
   owner: User!
@@ -194,6 +197,12 @@ enum CodeNamesTeam {
   RED
 }
 
+enum HintType {
+  INFINITE
+  NB
+  ZERO
+}
+
 enum SortEnumType {
   ASC
   DESC
@@ -215,10 +224,11 @@ input ChatMessageSortInput {
 input CodeNamesGiveHintEventRequestInput {
   hint: String!
   nb: Int!
+  type: HintType!
 }
 
 input CodeNamesMakeProposalEventRequestInput {
-  hintId: UUID!
+  hintId: UUID
   word: String!
 }
 
@@ -227,6 +237,7 @@ input GameSortInput {
   currentPlayer: PlayerSortInput
   id: SortEnumType
   name: SortEnumType
+  room: RoomSortInput
   state: SortEnumType
   type: SortEnumType
   winnerPlayer: PlayerSortInput

@@ -11,7 +11,7 @@ public class ChatMessage : IEntity, ICreated
     [MaxLength(512)]
     public required string Name { get; set; }
     
-    public virtual required User User { get; set; }
+    public virtual User? User { get; set; }
     
     public virtual required Room Room { get; set; } 
 }
