@@ -3,14 +3,17 @@ import {HomeComponent} from "./home/home.component";
 import {RoomsComponent} from "./rooms/rooms.component";
 import {connectedGuard} from "../connected.guard";
 import {RoomComponent} from "./rooms/room/room.component";
-import {RoomInitComponent} from "./rooms/room/room-init/room-init.component";
 import {GameComponent} from "./rooms/room/game/game.component";
+import {notConnectedGuard} from "../not-connected.guard";
+import {RoomWaitingComponent} from "./rooms/room/room-waiting/room-waiting.component";
+import {GameSettingComponent} from "./game-setting/game-setting.component";
 
 export const routes: Routes = [
   {
     path: '',
     title: 'Accueil - GameBoardOnline',
-    component: HomeComponent
+    component: HomeComponent,
+    canActivate: [notConnectedGuard]
   },
   {
     path: 'rooms',
@@ -24,11 +27,10 @@ export const routes: Routes = [
     component: RoomComponent,
     canActivate: [connectedGuard],
     children: [
-      { path: '', redirectTo: 'init', pathMatch: 'full' },
       {
-        path: 'init',
-        title: 'Préparation du salon - GameBoardOnline',
-        component: RoomInitComponent
+        path: '',
+        title: 'Salon - GameBoardOnline',
+        component: RoomWaitingComponent
       },
       {
         path: 'game/:gameId',
@@ -36,6 +38,12 @@ export const routes: Routes = [
         component: GameComponent
       }
     ]
+  },
+  {
+    path: 'game/:gameId',
+    title: 'Modification d\'un jeu - GameBoardOnline',
+    component: GameSettingComponent,
+    canActivate: [connectedGuard]
   },
   { path: '**', redirectTo: '' },
 ];

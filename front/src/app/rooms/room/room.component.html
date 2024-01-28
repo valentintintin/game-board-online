@@ -2,7 +2,16 @@
   <nz-content>
     <router-outlet></router-outlet>
   </nz-content>
-  <nz-sider nzWidth="500">
+  <nz-sider nzCollapsed nzWidth="300px" nzTheme="light" nzBreakpoint="xl"
+            [nzCollapsed]="isChatCollapsed" [nzCollapsedWidth]="0">
+    <div class="side-header">
+      <span
+        class="trigger"
+        nz-icon
+        [nzType]="isChatCollapsed ? 'menu-fold' : 'menu-unfold'"
+        (click)="isChatCollapsed = !isChatCollapsed"></span>
+    </div>
+
     <app-chat></app-chat>
   </nz-sider>
 </nz-layout>

@@ -1,13 +1,13 @@
 using System.Text;
 using Common.Context;
 using Common.Exceptions;
-using Common.Games.CodeNames;
 using Common.Services;
 using GameBoardOnlineApi.GraphQl;
-using GameBoardOnlineApi.GraphQl.Games.CodeNames.Types;
 using GameBoardOnlineApi.GraphQl.Types;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Primitives;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
@@ -23,8 +23,9 @@ builder.Services.AddCors(option =>
 });
 
 builder.Services.AddControllers();
-    
+
 builder.Services
+    .AddHttpContextAccessor()
     .AddGraphQLServer()
     .AddInMemorySubscriptions()
     .AddAuthorization()
@@ -35,25 +36,37 @@ builder.Services
     .AddSubscriptionType<Subscription>()
     .AddType<UserType>()
     .AddType<RoomType>()
-    .AddType<GameSimpleType>()
-    .AddType<CodeNamesGameType>()
-    .AddType<CodeNamesPlayerType>()
-    .AddType<CodeNamesWordCardType>()
+    .AddType<GameType>()
+    .AddType<EntityType>()
+    .AddType<GamePlayedType>()
+    .AddTypeExtension<EntityPlayedType>()
+    .AddSocketSessionInterceptor<GraphQLSessionInterceptor>()
     .AddProjections()
-    .AddSorting();
+    .AddSorting()
+    .InitializeOnStartup();
 
 builder.Services.AddPooledDbContextFactory<DataContext>(option =>
 {
-    option.UseNpgsql(
-            builder.Configuration.GetConnectionString("Default")
+    option
+        .UseNpgsql(
+            builder.Configuration.GetConnectionString("Default"), optionsSql =>
+            {
+                optionsSql.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
+            }
         )
         .UseLazyLoadingProxies()
         .EnableSensitiveDataLogging();
 });
 
-builder.Services.AddScoped<DataContext>(service => service.GetRequiredService<IDbContextFactory<DataContext>>().CreateDbContext());
+builder.Services.AddScoped(sp => sp.GetRequiredService<IDbContextFactory<DataContext>>().CreateDbContext());
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer("websocket", _ => { })
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
@@ -63,54 +76,37 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateLifetime = false,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? throw new GameBoardOnlineException("JWT Key missing")))
         };
-    });
+        
+        // https://gist.github.com/PascalSenn/43fedfbc1bc96692d99263a9da2d9ac4
+        options.ForwardDefaultSelector = context =>
+        {
+            if (!context.Request.Headers.TryGetValue("Authorization", out _) &&
+                context.Request.Headers.TryGetValue("Upgrade", out var value) &&
+                value.Count > 0 &&
+                value[0] is "websocket")
+            {
+                return "websocket";
+            }
+            return JwtBearerDefaults.AuthenticationScheme;
+        };
+    })
+    ;
 
 builder.Services.AddAuthorization();
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
-{
-    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
-    {
-        Name = "Authorization",
-        Type = SecuritySchemeType.ApiKey,
-        Scheme = "Bearer",
-        BearerFormat = "JWT",
-        In = ParameterLocation.Header,
-        Description = "Authorisation JWT en en-tete en utilisant Bearer. \r\n\r\n Entrer 'Bearer' [esspace] et le token dans le champs.\r\n\r\nExample: \"Bearer 12345abcdef\"",
-    });
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            Array.Empty<string>()
-        }
-    });
-});
-
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<RoomService>();
-builder.Services.AddScoped<CodeNamesService>();
+builder.Services.AddScoped<GameService>();
+builder.Services.AddScoped<SecurityService>();
+
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+});
 
 var app = builder.Build();
 
 app.UseForwardedHeaders();
-
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
 
 app.UseRouting();
 app.UseAuthentication();
@@ -122,8 +118,9 @@ app.UseWebSockets();
 
 app.MapControllers();
 app.MapGraphQL();
+app.MapGraphQLAltair("/altair");
 
-app.Services.CreateScope().ServiceProvider.GetRequiredService<DataContext>().Database.Migrate();
+app.Services.CreateScope().ServiceProvider.GetRequiredService<IDbContextFactory<DataContext>>().CreateDbContext().Database.Migrate();
 
 Console.WriteLine("Started !");
 

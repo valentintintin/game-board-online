@@ -1,8 +1,18 @@
-import { CanActivateFn } from '@angular/router';
+import {CanActivateFn, Router} from '@angular/router';
 import {inject} from "@angular/core";
 import {UserService} from "./services/api/user.service";
-import {map} from "rxjs";
+import {catchError, map, of} from "rxjs";
 
 export const connectedGuard: CanActivateFn = (route, state) => {
-  return inject(UserService).me().pipe(map(v => !!v));
+  const router = inject(Router);
+  return inject(UserService).me().pipe(
+    catchError(() => of(null)),
+    map(v => {
+      if (!v) {
+        return router.parseUrl('/');
+      }
+
+      return true;
+    })
+  );
 };

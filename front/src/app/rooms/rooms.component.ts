@@ -1,14 +1,19 @@
-import {Component, inject} from '@angular/core';
+import {Component, inject, OnDestroy, OnInit} from '@angular/core';
 import {NzTableModule} from "ng-zorro-antd/table";
 import {NzSpinComponent} from "ng-zorro-antd/spin";
 import {gql} from "apollo-angular";
-import {RoomsGQL} from "../../services/api/generated.service";
 import {AsyncPipe, DatePipe} from "@angular/common";
-import {RouterLink} from "@angular/router";
+import {Router, RouterLink} from "@angular/router";
 import {NzEmptyComponent} from "ng-zorro-antd/empty";
 import {NzIconDirective} from "ng-zorro-antd/icon";
 import {UserService} from "../../services/api/user.service";
 import {NzTooltipDirective} from "ng-zorro-antd/tooltip";
+import {RoomFormComponent} from "./room-form/room-form.component";
+import {GetRoomsGQL, JoinRoomGQL, NewRoomGQL} from "../../services/api/generated.service";
+import {NzDividerComponent} from "ng-zorro-antd/divider";
+import {Subscription} from "rxjs";
+import {NzButtonComponent} from "ng-zorro-antd/button";
+import {NzPageHeaderComponent} from "ng-zorro-antd/page-header";
 
 @Component({
   selector: 'app-rooms',
@@ -21,36 +26,77 @@ import {NzTooltipDirective} from "ng-zorro-antd/tooltip";
     DatePipe,
     NzEmptyComponent,
     NzIconDirective,
-    NzTooltipDirective
+    NzTooltipDirective,
+    RoomFormComponent,
+    NzDividerComponent,
+    NzButtonComponent,
+    NzPageHeaderComponent
   ],
   templateUrl: './rooms.component.html',
   styleUrl: './rooms.component.scss'
 })
-export class RoomsComponent {
-  private roomsGQL = inject(RoomsGQL);
-  userService = inject(UserService);
+export class RoomsComponent implements OnInit, OnDestroy {
+  private readonly subscription = new Subscription();
+
+  private readonly router = inject(Router);
+  private readonly roomsGQL = inject(GetRoomsGQL);
+  private readonly newRoomsGQL = inject(NewRoomGQL);
+  private readonly joinRoomGQL = inject(JoinRoomGQL);
 
   private roomsQuery = gql`
-    query rooms {
+    query getRooms {
       rooms {
         id
         name
         createdAt
+        userConnectedIsInside
         owner {
           id
           name
-        }
-        users {
-          id
-          name
-        }
-        currentGame {
-          id
-          name
+          color
         }
       }
     }
   `;
 
-  rooms$ = this.roomsGQL.watch().valueChanges;
+  private roomsSubscription = gql`
+    subscription newRoom {
+      newRoom {
+        id
+      }
+    }
+  `;
+
+  roomsRef = this.roomsGQL.watch();
+  rooms$ = this.roomsRef.valueChanges;
+
+  ngOnInit(): void {
+    this.subscription.add(
+      this.newRoomsGQL.subscribe().subscribe(() => {
+        void this.roomsRef.refetch();
+      })
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.subscription.unsubscribe();
+  }
+
+  join(roomId: number) {
+    gql`
+      mutation joinRoom($roomId: Long!) {
+        joinRoom(roomId: $roomId) {
+          id
+        }
+      }
+    `;
+
+    this.subscription.add(
+      this.joinRoomGQL.mutate({
+        roomId: roomId
+      }).subscribe({
+        next: () => this.router.navigate(['/room', roomId])
+      })
+    );
+  }
 }

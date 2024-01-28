@@ -6,11 +6,11 @@ namespace Common.Extensions;
 
 public static class ClaimsPrincipalExtensions
 {
-    public static Guid GetUserId(this ClaimsPrincipal claims)
+    public static long GetUserId(this ClaimsPrincipal claims)
     {
         try
         {
-            return Guid.Parse(claims.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new InvalidOperationException());
+            return long.Parse(claims.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new InvalidOperationException());
         }
         catch (Exception)
         {
@@ -18,11 +18,11 @@ public static class ClaimsPrincipalExtensions
         }
     }
     
-    public static Guid? TryGetUserId(this ClaimsPrincipal claims)
+    public static long? TryGetUserId(this ClaimsPrincipal claims)
     {
         try
         {
-            return Guid.Parse(claims.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new InvalidOperationException());
+            return long.Parse(claims.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? throw new InvalidOperationException());
         }
         catch (Exception)
         {

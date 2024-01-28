@@ -1,0 +1,10 @@
+<img
+  [width]="entity?.width"
+  [height]="entity?.height"
+  [ngSrc]="entity.showBack ? entity?.imageBack : entity?.image"
+  (dblclick)="dblclick()"
+  [alt]="entity?.name"
+  [nz-tooltip]="entity?.name"
+  [priority]="true"
+  [style.transform]="'rotate(' + entity.rotation + 'deg)'"
+/>

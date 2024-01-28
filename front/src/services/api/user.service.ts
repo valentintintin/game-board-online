@@ -10,9 +10,9 @@ import {toObservable} from "@angular/core/rxjs-interop";
 })
 export class UserService {
 
-  private cookieStorageService = inject(CookieStorageService);
-  private loginGQL = inject(LoginGQL);
-  private meGQL = inject(MeGQL);
+  private readonly cookieStorageService = inject(CookieStorageService);
+  private readonly loginGQL = inject(LoginGQL);
+  private readonly meGQL = inject(MeGQL);
 
   userConnected$ = signal<User | undefined>(undefined);
 

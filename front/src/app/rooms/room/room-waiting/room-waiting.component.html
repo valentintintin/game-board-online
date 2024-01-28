@@ -1,0 +1,37 @@
+<nz-spin [nzSpinning]="loading || (games$ | async)?.loading">
+  <nz-page-header [nzTitle]="'Salon ' + ((room$ | async)?.data?.room?.name ?? '')"></nz-page-header>
+
+  <div class="content">
+    <div nz-row nzJustify="center">
+      <div nz-col nzLg="8" nzSm="12">
+        <h3>Joueurs</h3>
+
+        <app-users-list [users]="(room$ | async)?.data?.room?.users ?? []"
+                        [roomId]="roomId"></app-users-list>
+      </div>
+
+      <div nz-col nzOffset="1" nzLg="8" nzSm="12">
+        @if ((room$ | async)?.data?.room?.currentGame)
+        {
+          <div>
+            <h3>Jeu en cours</h3>
+
+            <app-game-card [gamePlayed]="(room$ | async)?.data?.room?.currentGame"></app-game-card>
+          </div>
+        }
+      </div>
+    </div>
+
+    <nz-divider></nz-divider>
+
+    <h3>Liste des jeux</h3>
+
+    <div nz-row>
+      @for (game of (games$ | async)?.data?.games ?? []; track game.id) {
+        <app-game-card (newGame)="initGame($event.id)"
+                       [game]="game"
+                       [gamesPlayed]="(room$ | async)?.data?.room?.games ?? []"></app-game-card>
+      }
+    </div>
+  </div>
+</nz-spin>

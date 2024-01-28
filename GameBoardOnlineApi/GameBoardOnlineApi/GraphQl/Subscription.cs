@@ -1,7 +1,8 @@
+using System.Security.Claims;
 using Common.Context;
 using Common.Extensions;
-using Common.Games.CodeNames.Models;
 using Common.Models;
+using Common.Services;
 
 namespace GameBoardOnlineApi.GraphQl;
 
@@ -11,30 +12,55 @@ public class Subscription
     [Subscribe]
     [UseFirstOrDefault]
     [UseProjection]
-    public IQueryable<ChatMessage> ChatMessage([EventMessage] ChatMessage chatMessage, DataContext context)
+    public IQueryable<ChatMessage>? ChatMessage([EventMessage] ChatMessage chatMessage, DataContext context, 
+        ClaimsPrincipal claimsPrincipal, [Service] SecurityService securityService)
     {
-        return context.ChatMessages.FindByIdAsQueryable(chatMessage.Id);
-    }
+        var userId = claimsPrincipal.GetUserId();
 
-    #region CodeNames
-    
-    [Subscribe]
-    public EventResponse<CodeNamesGame, CodeNamesPlayer, CodeNamesAction, CodeNamesHint> GiveHint([EventMessage] EventResponse<CodeNamesGame, CodeNamesPlayer, CodeNamesAction, CodeNamesHint> data)
-    {
-        return data;
+        if (securityService.IsRoomAllowed(chatMessage.RoomId, userId))
+        {
+            return context.ChatMessages.FindByIdAsQueryable(chatMessage.Id);
+        }
+
+        return null;
     }
     
     [Subscribe]
-    public EventResponse<CodeNamesGame, CodeNamesPlayer, CodeNamesAction, CodeNamesWordCard> MakeProposal([EventMessage] EventResponse<CodeNamesGame, CodeNamesPlayer, CodeNamesAction, CodeNamesWordCard> data)
+    [UseFirstOrDefault]
+    [UseProjection]
+    public IQueryable<Room> NewRoom([EventMessage] Room room, DataContext context)
     {
-        return data;
+        return context.Rooms.FindByIdAsQueryable(room.Id);
     }
     
     [Subscribe]
-    public EventResponse<CodeNamesGame, CodeNamesPlayer, CodeNamesAction, object> Reset([EventMessage] EventResponse<CodeNamesGame, CodeNamesPlayer, CodeNamesAction, object> data)
+    [UseFirstOrDefault]
+    [UseProjection]
+    public IQueryable<Room>? RoomAction([EventMessage] EventRoomAction roomAction, [Service] SecurityService securityService, 
+        ClaimsPrincipal claimsPrincipal, DataContext context)
     {
-        return data;
+        var userId = claimsPrincipal.GetUserId();
+
+        if (securityService.IsRoomAllowed(roomAction.Room.Id, userId))
+        {
+            return context.Rooms.FindByIdAsQueryable(roomAction.Room.Id);
+        }
+        
+        return null;
     }
     
-    #endregion
+    [Subscribe]
+    [UseFirstOrDefault]
+    public IQueryable<EntityPlayed>? GameAction([EventMessage] EventGameAction gameAction, DataContext context, 
+        ClaimsPrincipal claimsPrincipal, [Service] SecurityService securityService)
+    {
+        var userId = claimsPrincipal.GetUserId();
+
+        if (securityService.IsEntityPlayedAllowed(gameAction.Entity.Id, userId))
+        {
+            return context.EntityPlayed.WithNavigationsIncluded().FindByIdAsQueryable(gameAction.Entity.Id);
+        }
+        
+        return null;
+    }
 }

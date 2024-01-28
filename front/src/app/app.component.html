@@ -1,6 +1,13 @@
 <nz-layout>
   <nz-header>
-    <h1>GameBoardOnline</h1>
+    <h1>
+      <a routerLink="/">GameBoardOnline</a>
+    </h1>
+
+    <div class="user"
+         [style.background-color]="userService.userConnected$()?.color">
+      {{ userService.userConnected$()?.name }}
+    </div>
   </nz-header>
   <nz-content>
     <router-outlet></router-outlet>

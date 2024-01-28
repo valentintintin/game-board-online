@@ -8,164 +8,159 @@ schema {
 
 type ChatMessage {
   createdAt: DateTime!
-  id: UUID!
+  id: Long!
   name: String!
   room: Room!
+  roomId: Long!
   user: User
 }
 
-type CodeNamesGame {
-  createdAt: DateTime!
-  currentPlayer: Player
-  currentState: CodeNamesState
-  currentTeam: CodeNamesTeam
-  hints: [CodeNamesHint!]!
-  id: UUID!
-  name: String!
-  players: [CodeNamesPlayer!]!
-  room: Room!
-  state: String
-  teamBeginning: CodeNamesTeam!
-  type: String!
-  winnerPlayer: Player
-  winnerTeam: CodeNamesTeam
-  words: [CodeNamesWordCard!]!
-}
-
-type CodeNamesHint {
-  createdAt: DateTime!
-  game: Game!
-  id: UUID!
-  name: String!
-  nb: Int!
-  owner: Player
-  team: CodeNamesTeam!
-  type: HintType!
-  word: String!
-}
-
-type CodeNamesMutations {
-  create(roomId: UUID!): CodeNamesGame
-  giveHint(data: CodeNamesGiveHintEventRequestInput!, gameId: UUID!): EventResponseOfCodeNamesGameAndCodeNamesPlayerAndCodeNamesActionAndCodeNamesHint
-  makeProposal(data: CodeNamesMakeProposalEventRequestInput!, gameId: UUID!): EventResponseOfCodeNamesGameAndCodeNamesPlayerAndCodeNamesActionAndCodeNamesWordCard
-  reset(roomId: UUID!): EventResponseOfCodeNamesGameAndCodeNamesPlayerAndCodeNamesActionAndObject
-}
-
-type CodeNamesPlayer {
-  game: Game!
-  id: UUID!
-  isGuesser: Boolean!
-  name: String!
-  team: CodeNamesTeam!
-  user: User!
-}
-
-type CodeNamesQuery {
-  get(gameId: UUID!): CodeNamesGame
-}
-
-type CodeNamesWordCard {
+type Entity {
   allowFlipOnce: Boolean!
   canBeDeleted: Boolean!
-  canBeShownToOthers: Boolean!
   canFlip: Boolean!
   canMove: Boolean!
   canRotate: Boolean!
-  game: Game!
+  group: EntityGroup!
   height: Int!
-  id: UUID!
-  image: String!
+  id: Long!
+  image: String
   imageBack: String
-  isFound: Boolean!
-  lastActorTouched: Player
   name: String!
   onlyForOwner: Boolean!
-  owner: Player
+  order: Int!
   rotation: Int!
-  shadowColor: String
   showBack: Boolean!
-  team: CodeNamesTeam
   width: Int!
-  word: String!
   x: Int!
   y: Int!
 }
 
-type EventResponseOfCodeNamesGameAndCodeNamesPlayerAndCodeNamesActionAndCodeNamesHint {
-  action: CodeNamesAction!
-  data: CodeNamesHint
-  game: CodeNamesGame!
-  player: CodeNamesPlayer!
+type EntityGroup {
+  canRemoveNotUsed: Boolean
+  entities: [Entity!]!
+  game: Game!
+  gameId: Long!
+  id: Long!
+  imageBack: String
+  name: String!
+  randomize: Boolean!
 }
 
-type EventResponseOfCodeNamesGameAndCodeNamesPlayerAndCodeNamesActionAndCodeNamesWordCard {
-  action: CodeNamesAction!
-  data: CodeNamesWordCard
-  game: CodeNamesGame!
-  player: CodeNamesPlayer!
-}
-
-type EventResponseOfCodeNamesGameAndCodeNamesPlayerAndCodeNamesActionAndObject {
-  action: CodeNamesAction!
-  game: CodeNamesGame!
-  player: CodeNamesPlayer!
+type EntityPlayed {
+  canBeDeleted: Boolean!
+  canBeGiven: Boolean!
+  canFlip: EntityFlippableState!
+  canMove: Boolean!
+  canRotate: Boolean!
+  container: String
+  createdAt: DateTime!
+  deleted: Boolean!
+  entity: Entity!
+  gamePlayed: GamePlayed!
+  gamePlayedId: Long!
+  height: Int!
+  id: Long!
+  image: String
+  imageBack: String
+  isMine: Boolean!
+  lastActorTouched: Player
+  name: String
+  onlyForOwner: Boolean!
+  order: Int!
+  owner: Player
+  ownerId: Long
+  rotation: Int!
+  showBack: Boolean!
+  width: Int!
+  x: Int!
+  y: Int!
 }
 
 type Game {
-  createdAt: DateTime!
-  id: UUID!
+  entitiesGroups: [EntityGroup!]!
+  id: Long!
+  image: String
+  minPlayers: Int!
   name: String!
-  players: [Player!]!
   type: String!
 }
 
+type GamePlayed {
+  createdAt: DateTime!
+  entities: [EntityPlayed]
+  entitiesGroups: [EntityGroup]
+  game: Game!
+  gameId: Long!
+  id: Long!
+  isFinished: Boolean!
+  players: [Player!]!
+  room: Room!
+  roomId: Long!
+}
+
 type Mutation {
-  codeNames: CodeNamesMutations!
   createRoom(name: String!): Room
-  joinRoom(roomId: UUID!): Room
-  leaveRoom(roomId: UUID!): Room
+  deleteEntitiesNotTouched(gamePlayedId: Long!): [EntityPlayed!]!
+  gameDeleteEntity(entityPlayedId: Long!): EntityPlayed!
+  gameFlipEntity(entityPlayedId: Long!, onlyForOwner: Boolean, showBack: Boolean!): EntityPlayed!
+  gameGiveEntity(container: String, entityPlayedId: Long!, newPlayerId: Long!): EntityPlayed!
+  gameMoveEntity(container: String, entityPlayedId: Long!, x: Int!, y: Int!): EntityPlayed!
+  gameRotateEntity(entityPlayedId: Long!, rotation: Int!): EntityPlayed!
+  initializeGame(gameId: Long!, roomId: Long!): GamePlayed
+  joinRoom(roomId: Long!): Room
+  leaveRoom(roomId: Long!, userId: Long!): Room
   login(color: String!, name: String!): User
-  sendChatMessage(message: String!, roomId: UUID!): ChatMessage
+  sendChatMessage(message: String!, roomId: Long!): ChatMessage
+  setCurrentGame(gamePlayedId: Long!, roomId: Long!): Room
+  updateEntity(dto: EntityUpdateDtoInput!, entityId: Long!): [Entity!]!
 }
 
 type Player {
-  game: Game!
-  id: UUID!
-  name: String!
+  game: GamePlayed!
+  gameId: Long!
+  id: Long!
   user: User!
+  userId: Long!
 }
 
 type Query {
-  codeNames: CodeNamesQuery!
+  game(gameId: Long!): Game
+  gamePlayed(gamePlayedId: Long!): GamePlayed
+  games: [Game!]!
   me: User
-  room(roomId: UUID!): Room
+  room(roomId: Long!): Room
   rooms: [Room!]!
 }
 
 type Room {
   chatMessages(order: [ChatMessageSortInput!]): [ChatMessage!]!
   createdAt: DateTime!
-  currentGame: Game
-  games: [Game!]!
-  id: UUID!
+  currentGame: GamePlayed
+  currentGameId: Long
+  games: [GamePlayed!]!
+  id: Long!
   name: String!
   owner: User!
+  ownerId: Long!
+  userConnectedIsInside: Boolean!
+  userConnectedIsOwner: Boolean!
   users: [User!]!
 }
 
 type Subscription {
   chatMessage: ChatMessage
-  giveHint: EventResponseOfCodeNamesGameAndCodeNamesPlayerAndCodeNamesActionAndCodeNamesHint!
-  makeProposal: EventResponseOfCodeNamesGameAndCodeNamesPlayerAndCodeNamesActionAndCodeNamesWordCard!
-  reset: EventResponseOfCodeNamesGameAndCodeNamesPlayerAndCodeNamesActionAndObject!
+  gameAction: EntityPlayed
+  newRoom: Room
+  roomAction: Room
 }
 
 type User {
   color: String!
   createdAt: DateTime!
-  id: UUID!
+  id: Long!
+  joinedRooms: [Room!]!
   name: String!
-  players: [Player!]!
   roomsCreated: [Room!]!
   token: String
 }
@@ -176,31 +171,13 @@ enum ApplyPolicy {
   VALIDATION
 }
 
-enum CodeNamesAction {
-  GIVE_HINT
-  MAKE_PROPOSAL
-  PASS
-  RESET
-}
-
-enum CodeNamesState {
-  END
-  HINT
-  LAST_PROPOSAL
-  PROPOSAL
-}
-
-enum CodeNamesTeam {
-  BLACK
-  BLUE
-  NEUTRAL
-  RED
-}
-
-enum HintType {
-  INFINITE
-  NB
-  ZERO
+enum EntityFlippableState {
+  NOT_FLIPPABLE
+  NOT_SHOW_BACK
+  ONLY_FOR_OWNER_IS_MINE_NOT_SHOW_BACK
+  ONLY_FOR_OWNER_IS_MINE_SHOW_BACK
+  ONLY_FOR_OWNER_SHOW_BACK
+  SHOW_BACK
 }
 
 enum SortEnumType {
@@ -211,51 +188,52 @@ enum SortEnumType {
 "The `DateTime` scalar represents an ISO-8601 compliant date time type."
 scalar DateTime
 
-scalar UUID
+"The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1."
+scalar Long
 
 input ChatMessageSortInput {
   createdAt: SortEnumType
   id: SortEnumType
   name: SortEnumType
   room: RoomSortInput
+  roomId: SortEnumType
   user: UserSortInput
 }
 
-input CodeNamesGiveHintEventRequestInput {
-  hint: String!
-  nb: Int!
-  type: HintType!
+input EntityUpdateDtoInput {
+  rotation: Int!
+  showBack: Boolean!
+  x: Int!
+  y: Int!
 }
 
-input CodeNamesMakeProposalEventRequestInput {
-  hintId: UUID
-  word: String!
+input GamePlayedSortInput {
+  createdAt: SortEnumType
+  game: GameSortInput
+  gameId: SortEnumType
+  id: SortEnumType
+  isFinished: SortEnumType
+  room: RoomSortInput
+  roomId: SortEnumType
 }
 
 input GameSortInput {
-  createdAt: SortEnumType
-  currentPlayer: PlayerSortInput
+  enabled: SortEnumType
   id: SortEnumType
+  image: SortEnumType
+  minPlayers: SortEnumType
   name: SortEnumType
-  room: RoomSortInput
-  state: SortEnumType
   type: SortEnumType
-  winnerPlayer: PlayerSortInput
-}
-
-input PlayerSortInput {
-  game: GameSortInput
-  id: SortEnumType
-  name: SortEnumType
-  user: UserSortInput
 }
 
 input RoomSortInput {
   createdAt: SortEnumType
-  currentGame: GameSortInput
+  currentGame: GamePlayedSortInput
+  currentGameId: SortEnumType
   id: SortEnumType
   name: SortEnumType
   owner: UserSortInput
+  ownerId: SortEnumType
 }
 
 input UserSortInput {

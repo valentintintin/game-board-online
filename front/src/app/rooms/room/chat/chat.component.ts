@@ -2,7 +2,7 @@ import {Component, inject} from '@angular/core';
 import {ChatInputComponent} from "./chat-input/chat-input.component";
 import {NzListComponent, NzListItemComponent} from "ng-zorro-antd/list";
 import {gql} from "apollo-angular";
-import {ChatMessage, GetMessagesGQL} from "../../../../services/api/generated.service";
+import {GetMessagesGQL} from "../../../../services/api/generated.service";
 import {ActivatedRoute} from "@angular/router";
 import {AsyncPipe, DatePipe, JsonPipe} from "@angular/common";
 import {map} from "rxjs";
@@ -23,7 +23,7 @@ import {map} from "rxjs";
 })
 export class ChatComponent {
   private query = gql`
-    query getMessages($roomId: UUID!) {
+    query getMessages($roomId: Long!) {
         room(roomId: $roomId) {
           id
           chatMessages(order: { createdAt: DESC }) {
@@ -40,10 +40,10 @@ export class ChatComponent {
     }
   `;
 
-  private getMessagesGQL = inject(GetMessagesGQL);
-  private route = inject(ActivatedRoute);
+  private readonly getMessagesGQL = inject(GetMessagesGQL);
+  private readonly route = inject(ActivatedRoute);
 
-  roomId = this.route.snapshot.paramMap.get('roomId');
+  roomId = parseInt(this.route.snapshot.paramMap.get('roomId') ?? '', 10);
 
   messages$ = this.getMessagesGQL.watch({
     roomId: this.roomId,

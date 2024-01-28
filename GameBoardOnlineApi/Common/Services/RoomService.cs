@@ -1,12 +1,17 @@
 using Common.Context;
+using Common.Extensions;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace Common.Services;
 
-public class RoomService(ILogger<RoomService> logger, DataContext context) : AService(logger)
+public class RoomService(ILogger<RoomService> logger, IDbContextFactory<DataContext> dbContextFactory)
+    : AService(logger, dbContextFactory)
 {
-    public Room Create(User owner, string name)
+    public Room Create(long ownerId, string name)
     {
+        var owner = Context.Users.FindOrThrow(ownerId);
+        
         Room room = new()
         {
             Name = name,
@@ -14,34 +19,74 @@ public class RoomService(ILogger<RoomService> logger, DataContext context) : ASe
             Users = [owner]
         };
 
-        context.Add(room);
-        context.SaveChanges();
+        Context.Add(room);
+        Context.SaveChanges();
 
         return room;
     }
 
-    public Room Join(Room room, User user)
+    public Room Join(long roomId, long userId)
     {
+        var room = Context.Rooms
+            .Include(r => r.Users)
+            .FindOrThrow(roomId);
+        var user = Context.Users.FindOrThrow(userId);
+        
+        if (room.Users.Any(u => u == user))
+        {
+            return room;
+        }
+        
         room.Users.Add(user);
 
-        context.Update(room);
-        context.SaveChanges();
+        Context.Update(room);
+        Context.SaveChanges();
+
+        SendChatMessage(roomId, $"{user.Name} est rentré dans le salon");
 
         return room;
     }
 
-    public Room Leave(Room room, User user)
+    public Room Leave(long roomId, long userId)
     {
+        var room = Context.Rooms
+            .Include(r => r.Users)
+            .FindOrThrow(roomId);
+        var user = Context.Users.FindOrThrow(userId);
+        
+        if (room.Users.All(u => u != user))
+        {
+            return room;
+        }
+        
         room.Users.Remove(user);
 
-        context.Update(room);
-        context.SaveChanges();
+        Context.Update(room);
+        Context.SaveChanges();
+
+        SendChatMessage(roomId, $"{user.Name} a quité le salon");
 
         return room;
     }
 
-    public ChatMessage SendChatMessage(Room room, string message, User? user = null)
+    public Room SetCurrentGame(long roomId, long gamePlayedId)
     {
+        var room = Context.Rooms.FindOrThrow(roomId);
+        var gamePlayed = Context.GamePlayed.FindOrThrow(gamePlayedId);
+
+        room.CurrentGame = gamePlayed;
+
+        Context.Update(room);
+        Context.SaveChanges();
+        
+        return room;
+    }
+
+    public ChatMessage SendChatMessage(long roomId, string message, long? userId = null)
+    {
+        var room = Context.Rooms.FindOrThrow(roomId);
+        var user = userId.HasValue ? Context.Users.FindOrThrow(userId) : null;
+        
         var chatMessage = new ChatMessage
         {
             User = user,
@@ -51,8 +96,8 @@ public class RoomService(ILogger<RoomService> logger, DataContext context) : ASe
 
         room.ChatMessages.Add(chatMessage);
         
-        context.Update(room);
-        context.SaveChanges();
+        Context.Update(room);
+        Context.SaveChanges();
 
         return chatMessage;
     }

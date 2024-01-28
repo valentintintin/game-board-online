@@ -7,12 +7,12 @@ namespace Common.Extensions;
 
 public static class EntityExtension
 {
-    public static IQueryable<TEntity> FindByIdAsQueryable<TEntity>(this IQueryable<TEntity> entities, Guid? id) where TEntity : IEntity
+    public static IQueryable<TEntity> FindByIdAsQueryable<TEntity>(this IQueryable<TEntity> entities, long? id) where TEntity : IEntity
     {
         return entities.Where(e => e.Id == id);
     }
 
-    public static TEntity? Find<TEntity>(this IQueryable<TEntity> entities, Guid? id) where TEntity : IEntity
+    public static TEntity? Find<TEntity>(this IQueryable<TEntity> entities, long? id) where TEntity : IEntity
     {
         if (!id.HasValue)
         {
@@ -22,7 +22,7 @@ public static class EntityExtension
         return entities.FirstOrDefault(e => e.Id == id);
     }
 
-    public static TEntity FindOrThrow<TEntity>(this IQueryable<TEntity> entities, Guid? id) where TEntity : IEntity
+    public static TEntity FindOrThrow<TEntity>(this IQueryable<TEntity> entities, long? id) where TEntity : IEntity
     {
         if (!id.HasValue)
         {
@@ -39,7 +39,7 @@ public static class EntityExtension
         return entity;
     }
 
-    public static async Task<TEntity> FindOrThrowAsync<TEntity>(this IQueryable<TEntity> entities, Guid? id) where TEntity : IEntity
+    public static async Task<TEntity> FindOrThrowAsync<TEntity>(this IQueryable<TEntity> entities, long? id) where TEntity : IEntity
     {
         var entity = await FindAsync(entities, id); 
 
@@ -51,7 +51,7 @@ public static class EntityExtension
         return entity;
     }
 
-    public static async Task<TEntity?> FindAsync<TEntity>(this IQueryable<TEntity> entities, Guid? id) where TEntity : IEntity
+    public static async Task<TEntity?> FindAsync<TEntity>(this IQueryable<TEntity> entities, long? id) where TEntity : IEntity
     {
         if (!id.HasValue)
         {
@@ -61,7 +61,7 @@ public static class EntityExtension
         return await entities.FirstOrDefaultAsync(e => e.Id == id);
     }
 
-    public static IQueryable<TEntity> FindMultiples<TEntity>(this IQueryable<TEntity> entities, IList<Guid> ids) where TEntity : IEntity
+    public static IQueryable<TEntity> FindMultiples<TEntity>(this IQueryable<TEntity> entities, IList<long> ids) where TEntity : IEntity
     {
         return entities.Where(e => ids.Contains(e.Id));
     }

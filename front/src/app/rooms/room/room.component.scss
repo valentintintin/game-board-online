@@ -1,5 +1,20 @@
-nz-sider {
-  color: white;
-  background: lightgray;
-  padding: 10px;
+@import "../../../variables";
+
+.side-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.trigger {
+  position: absolute;
+  top: 0;
+  right: 0;
+
+  font-size: 18px;
+  line-height: 64px;
+  padding: 0 24px;
+  cursor: pointer;
+  color: $blue;
 }

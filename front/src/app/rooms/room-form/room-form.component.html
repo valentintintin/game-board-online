@@ -1,0 +1,19 @@
+<nz-spin [nzSpinning]="loading">
+  <form nz-form [nzLayout]="'inline'" [formGroup]="form" (ngSubmit)="create()">
+    <nz-form-item>
+      <nz-form-control>
+        <nz-input-group>
+          <input type="text" formControlName="name" nz-input placeholder="Nom" />
+        </nz-input-group>
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item>
+      <nz-form-control>
+        <button type="submit" [disabled]="form.invalid" nz-button nzType="primary">
+          Créer<i nz-icon nzType="right" nzTheme="outline"></i>
+        </button>
+      </nz-form-control>
+    </nz-form-item>
+  </form>
+</nz-spin>

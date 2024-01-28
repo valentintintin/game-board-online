@@ -1,5 +1,3 @@
-using Common.Games.CodeNames.Models;
-using Common.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -9,8 +7,9 @@ public class EntityConfiguration : IEntityTypeConfiguration<Entity>
 {
     public void Configure(EntityTypeBuilder<Entity> builder)
     {
-        builder
-            .HasDiscriminator()
-            .HasValue<CodeNamesWordCard>(nameof(CodeNamesWordCard));
+        builder.HasKey(u => u.Id);
+        
+        builder.HasOne(e => e.Group)
+            .WithMany(eg => eg.Entities);
     }
 }

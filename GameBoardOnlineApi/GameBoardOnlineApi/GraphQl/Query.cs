@@ -1,9 +1,10 @@
 using System.Security.Claims;
 using Common.Context;
+using Common.Exceptions;
 using Common.Extensions;
 using Common.Services;
-using GameBoardOnlineApi.GraphQl.Games.CodeNames;
 using HotChocolate.Authorization;
+using Microsoft.EntityFrameworkCore;
 
 namespace GameBoardOnlineApi.GraphQl;
 
@@ -27,10 +28,31 @@ public class Query
     [Authorize]
     [UseFirstOrDefault]
     [UseProjection]
-    public IQueryable<Room> GetRoom(Guid roomId, DataContext context)
+    public IQueryable<Room> GetRoom(long roomId, DataContext context)
     {
         return context.Rooms.FindByIdAsQueryable(roomId);
     }
 
-    public CodeNamesQuery CodeNames => new();
+    [Authorize]
+    [UseProjection]
+    public IQueryable<Game> Games(DataContext context)
+    {
+        return context.Games;
+    }
+
+    [Authorize]
+    [UseFirstOrDefault]
+    [UseProjection]
+    public IQueryable<Game> Game(long gameId, DataContext context)
+    {
+        return context.Games.FindByIdAsQueryable(gameId);
+    }
+
+    [Authorize]
+    [UseFirstOrDefault]
+    [UseProjection]
+    public IQueryable<GamePlayed> GamePlayed(long gamePlayedId, DataContext context)
+    {
+        return context.GamePlayed.FindByIdAsQueryable(gamePlayedId);
+    }
 }

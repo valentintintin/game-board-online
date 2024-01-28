@@ -1,0 +1,100 @@
+@if (!entity.deleted)
+{
+  <img
+    [width]="entity.width"
+    [height]="entity.height"
+    [ngSrc]="entity.showBack || (!entity.isMine && entity.onlyForOwner) ? entity.imageBack : entity.image"
+    [alt]="entity.entity?.name"
+    [nz-tooltip]="entity?.name"
+    (dblclick)="flip.emit({ showBack: !entity.showBack })"
+    [priority]="true"
+    (contextmenu)="showDropDown($event)"
+  />
+
+  <nz-dropdown-menu #menu="nzDropdownMenu">
+    <ul nz-menu nzSelectable>
+      @if (entity.canRotate)
+      {
+        <li nz-menu-item (click)="rotate.emit(-25)">
+          Pivoter à gauche
+        </li>
+
+        <li nz-menu-item (click)="rotate.emit(25)">
+          Pivoter à droite
+        </li>
+
+        <li nz-menu-item (click)="rotate.emit(180)">
+          Pivoter de 180°
+        </li>
+      }
+
+      @switch (entity.canFlip)
+      {
+        @case (EntityFlippableState.NotShowBack)
+        {
+          <li nz-menu-item (click)="flip.emit({ showBack: false })">
+            Retourner
+          </li>
+        }
+        @case (EntityFlippableState.ShowBack)
+        {
+          <li nz-menu-item (click)="flip.emit({ showBack: false })">
+            Retourner
+          </li>
+        }
+        @case (EntityFlippableState.OnlyForOwnerShowBack)
+        {
+          <li nz-menu-item (click)="flip.emit({ showBack: false, onlyForOwner: true })">
+            Dévoiler seulement pour moi
+          </li>
+        }
+        @case (EntityFlippableState.OnlyForOwnerIsMineShowBack)
+        {
+          <li nz-menu-item (click)="flip.emit({ showBack: false, onlyForOwner: true })">
+            Dévoiler seulement pour moi
+          </li>
+
+          <li nz-menu-item (click)="flip.emit({ showBack: false, onlyForOwner: false })">
+            Dévoiler pour tout le monde
+          </li>
+        }
+        @case (EntityFlippableState.OnlyForOwnerIsMineNotShowBack)
+        {
+          <li nz-menu-item (click)="flip.emit({ showBack: false, onlyForOwner: false })">
+            Dévoiler pour tout le monde
+          </li>
+
+          <li nz-menu-item (click)="flip.emit({ showBack: true })">
+            Cacher
+          </li>
+        }
+      }
+
+      @if (entity.onlyForOwner && entity.isMine)
+      {
+        <li nz-submenu nzTitle="Donner">
+          <ul>
+            @for (player of players; track player.id)
+            {
+              @if (player.user.id !== userService.userConnected$()?.id)
+              {
+                <li nz-menu-item
+                    [style.color]="player.user?.color ?? 'black'"
+                    (click)="give.emit(player.id)">
+                  {{ player.user.name }}
+                </li>
+              }
+            }
+          </ul>
+        </li>
+      }
+
+      @if (entity.canBeDeleted)
+      {
+        <li nz-menu-item (click)="delete.emit()">
+          Supprimer
+        </li>
+      }
+    </ul>
+  </nz-dropdown-menu>
+}

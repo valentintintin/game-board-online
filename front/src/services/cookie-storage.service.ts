@@ -5,7 +5,7 @@ import {CookieService} from "ngx-cookie-service";
   providedIn: 'root'
 })
 export class CookieStorageService {
-  private cookieService = inject(CookieService);
+  private readonly cookieService = inject(CookieService);
 
   private readonly cookieNameToken: string = 'token';
 

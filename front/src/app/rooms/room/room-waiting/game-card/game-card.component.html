@@ -1,0 +1,34 @@
+@if (game)
+{
+  <nz-card nz-col style="width:350px;" [nzTitle]="game.name" [nzExtra]="extraTemplate">
+    <img [ngSrc]="game?.image ?? ''" [width]="250" [height]="250" [alt]="'Boîte de ' + game.name" />
+  </nz-card>
+  <ng-template #extraTemplate>
+    <nz-button-group>
+      @if (gamePlayed)
+      {
+        <button nz-button nzType="primary" [routerLink]="['game', gamePlayed.id]">Rejoindre</button>
+      }
+      @else
+      {
+        <button nz-button nzType="primary" (click)="newGame.emit(game)">Nouvelle partie</button>
+      }
+
+      @if (gamesPlayed.length)
+      {
+        <button nz-button nz-dropdown [nzDropdownMenu]="menuPlay" nzPlacement="bottomRight">
+          <span nz-icon nzType="down" nz-tooltip="Anciennes parties"></span>
+        </button>
+
+        <nz-dropdown-menu #menuPlay="nzDropdownMenu">
+          <ul nz-menu>
+            @for (gamePlayed of gamesPlayed; track gamePlayed.id)
+            {
+              <li nz-menu-item [routerLink]="['game', gamePlayed.id]">{{ gamePlayed.createdAt | date }} - {{ gamePlayed.isFinished ? 'Terminé' : 'En cours' }}</li>
+            }
+          </ul>
+        </nz-dropdown-menu>
+      }
+    </nz-button-group>
+  </ng-template>
+}

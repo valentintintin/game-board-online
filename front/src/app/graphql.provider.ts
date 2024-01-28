@@ -12,8 +12,8 @@ import {CookieStorageService} from "../services/cookie-storage.service";
 import {NzMessageService} from "ng-zorro-antd/message";
 import {UtilsGraphql} from "../services/utils-graphql";
 import {createClient} from "graphql-ws";
+import {G} from "@angular/cdk/keycodes";
 
-const uri = environment.apiUrl + '/graphql';
 export const createApollo = (
   httpLink: HttpLink,
   cookieStorageService: CookieStorageService,
@@ -42,19 +42,19 @@ export const createApollo = (
         console.warn(`[GraphQL error]: Message: ${message}, Location:`, locations, 'Path:', path);
       });
 
-      if (operation.query.definitions.some(d => (d as OperationDefinitionNode)?.operation === 'query')) {
-        messageService.error(graphQLErrors[0].message);
-      }
+      messageService.error(graphQLErrors[0].message);
     }
 
     if (networkError) {
       console.warn('[Network error]', networkError);
+
+      messageService.error(networkError.message);
     }
   });
 
   const http = ApolloLink.from([
-    error,
     auth,
+    error,
     httpLink.create({
       uri: `${environment.apiUrl}/graphql`,
       extractFiles: UtilsGraphql.extractFiles
@@ -65,6 +65,8 @@ export const createApollo = (
     createClient({
       url: `${environment.apiUrl.replace('http', 'ws')}/graphql/ws`,
       lazy: false,
+      retryAttempts: Number.MAX_SAFE_INTEGER,
+      retryWait: _ => new Promise((resolve) => setTimeout(resolve, 5000)), // TODO test retry
       shouldRetry: _ => true,
       connectionParams: {
         token: cookieStorageService.token

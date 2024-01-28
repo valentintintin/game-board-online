@@ -6,7 +6,6 @@ import {NzIconDirective} from "ng-zorro-antd/icon";
 import {NzInputDirective, NzInputGroupComponent} from "ng-zorro-antd/input";
 import {gql} from "apollo-angular";
 import {SendMessageGQL} from "../../../../../services/api/generated.service";
-import {ActivatedRoute} from "@angular/router";
 import {NzSpinComponent} from "ng-zorro-antd/spin";
 import {Subscription} from "rxjs";
 import {AsyncPipe} from "@angular/common";
@@ -34,9 +33,9 @@ export class ChatInputComponent implements OnDestroy {
 
   private readonly subscription = new Subscription();
 
-  private sendMessageQuery = inject(SendMessageGQL);
+  private readonly sendMessageQuery = inject(SendMessageGQL);
 
-  @Input({required: true}) roomId!: string | null;
+  @Input({required: true}) roomId!: number | null;
 
   form = new FormGroup({
     message: new FormControl('', [Validators.required, Validators.minLength(2)]),
@@ -49,7 +48,7 @@ export class ChatInputComponent implements OnDestroy {
 
   sendMessage() {
     gql`
-    mutation sendMessage($roomId: UUID!, $message: String!) {
+    mutation sendMessage($roomId: Long!, $message: String!) {
       sendChatMessage(roomId: $roomId, message: $message) {
         id
       }
@@ -68,6 +67,7 @@ export class ChatInputComponent implements OnDestroy {
         refetchQueries: ['getMessages']
       }).subscribe({
         next: _ => this.form.reset(),
+        error: () => this.loading = false,
         complete: () => this.loading = false
       })
     );

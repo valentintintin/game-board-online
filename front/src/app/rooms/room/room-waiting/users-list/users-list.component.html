@@ -1,0 +1,13 @@
+<nz-list nzBordered nzSize="small">
+  @for (user of users; track user.id) {
+    <nz-list-item [style.color]="user.color">
+      {{ user.name }}
+      <ul nz-list-item-actions>
+        <nz-list-item-action>
+          <button nz-button nzType="default" nzDanger (click)="leave(user)">Exclure</button>
+        </nz-list-item-action>
+      </ul>
+    </nz-list-item>
+  }
+  <nz-list-footer>{{ users?.length }} joueurs</nz-list-footer>
+</nz-list>

@@ -1,6 +1,4 @@
 using Common.Context.Configurations;
-using Common.Games.CodeNames.Models;
-using Common.Models;
 using Common.Models.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,9 +11,13 @@ public class DataContext(DbContextOptions<DataContext> options) : DbContext(opti
     public required DbSet<ChatMessage> ChatMessages { get; init; }
     
     public required DbSet<Game> Games { get; init; }
-    public required DbSet<Player> Players { get; init; }
+    public required DbSet<EntityGroup> EntitiesGroups { get; init; }
     public required DbSet<Entity> Entities { get; init; }
-    public required DbSet<VirtualEntity> VirtualEntities { get; init; }
+    
+    public required DbSet<Player> Players { get; init; }
+    
+    public required DbSet<GamePlayed> GamePlayed { get; init; }
+    public required DbSet<EntityPlayed> EntityPlayed { get; init; }
 
     public override int SaveChanges(bool acceptAllChangesOnSuccess)
     {

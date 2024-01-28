@@ -2,7 +2,9 @@
 
 nz-header,
 nz-footer {
-  background: $backgroundBlue;
+  background: $blue;
+  display: flex;
+  justify-content: space-between;
 
   * {
     color: #fff;
@@ -15,14 +17,11 @@ nz-footer {
 
 nz-content {
   min-height: 120px;
-  padding: 20px;
+  margin: 10px;
 }
 
-nz-layout {
-  margin-bottom: 48px;
-}
-
-nz-layout nz-layout,
-nz-layout:last-child {
-  margin: 0;
+.user {
+  padding: 0 20px;
+  font-weight: bold;
+  color: lightgray;
 }

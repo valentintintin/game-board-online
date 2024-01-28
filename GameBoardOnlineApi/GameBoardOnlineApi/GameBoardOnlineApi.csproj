@@ -8,6 +8,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="GraphQL.Server.Ui.Altair" Version="7.6.0" />
         <PackageReference Include="HotChocolate.AspNetCore" Version="13.8.1" />
         <PackageReference Include="HotChocolate.AspNetCore.Authorization" Version="13.8.1" />
         <PackageReference Include="HotChocolate.Data.EntityFramework" Version="13.8.1" />
@@ -18,7 +19,6 @@
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.0" />
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0"/>
     </ItemGroup>
 
     <ItemGroup>

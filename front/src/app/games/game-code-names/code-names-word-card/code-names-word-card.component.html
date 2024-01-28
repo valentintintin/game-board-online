@@ -1,5 +1,0 @@
-<div [ngClass]="word.team?.toLowerCase()" (click)="selected.emit(word)" [class.selectable]="!word.isFound">
-  @if (!word.isFound || alwaysShowWord) {
-    {{ word.word }}
-  }
-</div>

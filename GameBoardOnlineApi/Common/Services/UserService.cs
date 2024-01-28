@@ -3,17 +3,19 @@ using System.Security.Claims;
 using System.Text;
 using Common.Context;
 using Common.Exceptions;
+using Common.Extensions;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Common.Services;
 
-public class UserService(ILogger<UserService> logger, IConfiguration configuration, DataContext context) : AService(logger)
+public class UserService(ILogger<UserService> logger, IConfiguration configuration, IDbContextFactory<DataContext> dbContextFactory) : AService(logger, dbContextFactory)
 {
     public User Create(string name, string color)
     {
-        var user = context.Users.FirstOrDefault(u => u.Name.ToLower() == name.Trim().ToLower());
+        var user = Context.Users.FirstOrDefault(u => u.Name.ToLower() == name.Trim().ToLower());
 
         if (user == null)
         {
@@ -23,21 +25,23 @@ public class UserService(ILogger<UserService> logger, IConfiguration configurati
                 Color = color
             };
 
-            context.Add(user);
+            Context.Add(user);
         }
         else
         {
             user.Color = color;
-            context.Update(user);
+            Context.Update(user);
         }
 
-        context.SaveChanges();
+        Context.SaveChanges();
 
         return user;
     }
 
-    public string Login(User user)
+    public string Login(long userId)
     {
+        var user = Context.Users.FindOrThrow(userId);
+        
         var signingCredentials = new SigningCredentials(
             new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["Jwt:Key"] ?? throw new GameBoardOnlineException("JWT Key missing"))),
             SecurityAlgorithms.HmacSha256Signature

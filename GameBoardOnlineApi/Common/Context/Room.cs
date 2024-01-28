@@ -5,8 +5,7 @@ namespace Common.Context;
 
 public record Room : IEntity, ICreated
 {
-    [Key]
-    public Guid Id { get; set; }
+    public long Id { get; set; }
     
     public DateTime CreatedAt { get; set; }
     
@@ -14,10 +13,12 @@ public record Room : IEntity, ICreated
     public required string Name { get; set; }
     
     public virtual required User Owner { get; set; }
+    public long OwnerId { get; set; }
     
-    public virtual Game? CurrentGame { get; set; }
+    public long? CurrentGameId { get; set; }
+    public virtual GamePlayed? CurrentGame { get; set; }
     
     public virtual ICollection<User> Users { get; set; } = [];
-    public virtual ICollection<Game> Games { get; set; } = [];
+    public virtual ICollection<GamePlayed> Games { get; set; } = [];
     public virtual ICollection<ChatMessage> ChatMessages { get; set; } = [];
 }

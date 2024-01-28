@@ -4,6 +4,7 @@ using Common.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
@@ -19,27 +20,32 @@ namespace Common.Migrations
                 .HasAnnotation("ProductVersion", "8.0.0")
                 .HasAnnotation("Proxies:ChangeTracking", false)
                 .HasAnnotation("Proxies:CheckEquality", false)
-                .HasAnnotation("Proxies:LazyLoading", true);
+                .HasAnnotation("Proxies:LazyLoading", true)
+                .HasAnnotation("Relational:MaxIdentifierLength", 63);
+
+            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("Common.Context.ChatMessage", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(512)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(512)");
 
-                    b.Property<Guid>("RoomId")
-                        .HasColumnType("TEXT");
+                    b.Property<long>("RoomId")
+                        .HasColumnType("bigint");
 
-                    b.Property<Guid?>("UserId")
-                        .HasColumnType("TEXT");
+                    b.Property<long?>("UserId")
+                        .HasColumnType("bigint");
 
                     b.HasKey("Id");
 
@@ -52,161 +58,242 @@ namespace Common.Migrations
 
             modelBuilder.Entity("Common.Context.Entity", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<bool>("AllowFlipOnce")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("boolean");
 
                     b.Property<bool>("CanBeDeleted")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<bool>("CanBeShownToOthers")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("boolean");
 
                     b.Property<bool>("CanFlip")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("boolean");
 
                     b.Property<bool>("CanMove")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("boolean");
 
                     b.Property<bool>("CanRotate")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("boolean");
 
-                    b.Property<string>("Discriminator")
-                        .IsRequired()
-                        .HasMaxLength(21)
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("GameId")
-                        .HasColumnType("TEXT");
+                    b.Property<long>("GroupId")
+                        .HasColumnType("bigint");
 
                     b.Property<int>("Height")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
 
                     b.Property<string>("Image")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
                     b.Property<string>("ImageBack")
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid?>("LastActorTouchedId")
-                        .HasColumnType("TEXT");
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(64)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(64)");
 
                     b.Property<bool>("OnlyForOwner")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("boolean");
 
-                    b.Property<Guid?>("OwnerId")
-                        .HasColumnType("TEXT");
+                    b.Property<int>("Order")
+                        .HasColumnType("integer");
 
                     b.Property<int>("Rotation")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("ShadowColor")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("integer");
 
                     b.Property<bool>("ShowBack")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("boolean");
 
                     b.Property<int>("Width")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
 
                     b.Property<int>("X")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
 
                     b.Property<int>("Y")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GroupId");
+
+                    b.ToTable("Entities");
+                });
+
+            modelBuilder.Entity("Common.Context.EntityGroup", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<bool?>("CanRemoveNotUsed")
+                        .HasColumnType("boolean");
+
+                    b.Property<long>("GameId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("ImageBack")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<bool>("Randomize")
+                        .HasColumnType("boolean");
 
                     b.HasKey("Id");
 
                     b.HasIndex("GameId");
 
+                    b.ToTable("EntitiesGroups");
+                });
+
+            modelBuilder.Entity("Common.Context.EntityPlayed", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<bool>("CanFlip")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Container")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<long>("EntityId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("GamePlayedId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("LastActorTouchedId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("OnlyForOwner")
+                        .HasColumnType("boolean");
+
+                    b.Property<long?>("OwnerId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Rotation")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("ShowBack")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("X")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Y")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EntityId");
+
+                    b.HasIndex("GamePlayedId");
+
                     b.HasIndex("LastActorTouchedId");
 
                     b.HasIndex("OwnerId");
 
-                    b.ToTable("Entities");
-
-                    b.HasDiscriminator<string>("Discriminator").HasValue("Entity");
-
-                    b.UseTphMappingStrategy();
+                    b.ToTable("EntityPlayed");
                 });
 
             modelBuilder.Entity("Common.Context.Game", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("bigint");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<Guid?>("CurrentPlayerId")
-                        .HasColumnType("TEXT");
+                    b.Property<bool>("Enabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Image")
+                        .HasColumnType("text");
+
+                    b.Property<int>("MinPlayers")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(64)
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("RoomId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("State")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(64)");
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasMaxLength(13)
-                        .HasColumnType("TEXT")
-                        .HasColumnName("Discriminator");
-
-                    b.Property<Guid?>("WinnerPlayerId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CurrentPlayerId");
+                    b.ToTable("Games");
+                });
+
+            modelBuilder.Entity("Common.Context.GamePlayed", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long>("GameId")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsFinished")
+                        .HasColumnType("boolean");
+
+                    b.Property<long>("RoomId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GameId");
 
                     b.HasIndex("RoomId");
 
-                    b.HasIndex("WinnerPlayerId");
-
-                    b.ToTable("Games");
-
-                    b.HasDiscriminator<string>("Type").HasValue("Game");
-
-                    b.UseTphMappingStrategy();
+                    b.ToTable("GamePlayed");
                 });
 
             modelBuilder.Entity("Common.Context.Player", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("bigint");
 
-                    b.Property<string>("Discriminator")
-                        .IsRequired()
-                        .HasMaxLength(21)
-                        .HasColumnType("TEXT");
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
-                    b.Property<Guid>("GameId")
-                        .HasColumnType("TEXT");
+                    b.Property<long>("GameId")
+                        .HasColumnType("bigint");
 
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("TEXT");
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
 
                     b.HasKey("Id");
 
@@ -215,181 +302,79 @@ namespace Common.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Players");
-
-                    b.HasDiscriminator<string>("Discriminator").HasValue("Player");
-
-                    b.UseTphMappingStrategy();
                 });
 
             modelBuilder.Entity("Common.Context.Room", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid?>("CurrentGameId")
-                        .HasColumnType("TEXT");
+                    b.Property<long?>("CurrentGameId")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(128)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(128)");
 
-                    b.Property<Guid?>("OwnerId")
-                        .HasColumnType("TEXT");
+                    b.Property<long>("OwnerId")
+                        .HasColumnType("bigint");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CurrentGameId");
+                    b.HasIndex("CurrentGameId")
+                        .IsUnique();
 
                     b.HasIndex("OwnerId");
 
                     b.ToTable("Rooms");
                 });
 
+            modelBuilder.Entity("Common.Context.RoomUser", b =>
+                {
+                    b.Property<long>("RoomId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("RoomId", "UserId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("RoomUser");
+                });
+
             modelBuilder.Entity("Common.Context.User", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
 
                     b.Property<string>("Color")
                         .IsRequired()
                         .HasMaxLength(8)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(8)");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(128)
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid?>("RoomId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(128)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("RoomId");
 
                     b.ToTable("Users");
-                });
-
-            modelBuilder.Entity("Common.Context.VirtualEntity", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Discriminator")
-                        .IsRequired()
-                        .HasMaxLength(13)
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid>("GameId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("TEXT");
-
-                    b.Property<Guid?>("OwnerId")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("GameId");
-
-                    b.HasIndex("OwnerId");
-
-                    b.ToTable("VirtualEntities");
-
-                    b.HasDiscriminator<string>("Discriminator").HasValue("VirtualEntity");
-
-                    b.UseTphMappingStrategy();
-                });
-
-            modelBuilder.Entity("Common.Games.CodeNames.Models.CodeNamesWordCard", b =>
-                {
-                    b.HasBaseType("Common.Context.Entity");
-
-                    b.Property<Guid?>("CodeNamesGameId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Team")
-                        .IsRequired()
-                        .HasMaxLength(16)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Word")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.HasIndex("CodeNamesGameId");
-
-                    b.HasDiscriminator().HasValue("CodeNamesWordCard");
-                });
-
-            modelBuilder.Entity("Common.Games.CodeNames.Models.CodeNamesGame", b =>
-                {
-                    b.HasBaseType("Common.Context.Game");
-
-                    b.Property<string>("CurrentTeam")
-                        .HasMaxLength(16)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("TeamBeginning")
-                        .IsRequired()
-                        .HasMaxLength(16)
-                        .HasColumnType("TEXT");
-
-                    b.Property<int?>("WinnerTeam")
-                        .HasColumnType("INTEGER");
-
-                    b.HasDiscriminator().HasValue("CodeNamesGame");
-                });
-
-            modelBuilder.Entity("Common.Games.CodeNames.Models.CodeNamesPlayer", b =>
-                {
-                    b.HasBaseType("Common.Context.Player");
-
-                    b.Property<bool>("IsGuesser")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("Team")
-                        .HasColumnType("INTEGER");
-
-                    b.HasDiscriminator().HasValue("CodeNamesPlayer");
-                });
-
-            modelBuilder.Entity("Common.Games.CodeNames.Models.CodeNamesHint", b =>
-                {
-                    b.HasBaseType("Common.Context.VirtualEntity");
-
-                    b.Property<Guid?>("CodeNamesGameId")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("Nb")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Word")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.HasIndex("CodeNamesGameId");
-
-                    b.HasDiscriminator().HasValue("CodeNamesHint");
                 });
 
             modelBuilder.Entity("Common.Context.ChatMessage", b =>
@@ -401,7 +386,7 @@ namespace Common.Migrations
                         .IsRequired();
 
                     b.HasOne("Common.Context.User", "User")
-                        .WithMany()
+                        .WithMany("ChatMessages")
                         .HasForeignKey("UserId");
 
                     b.Navigation("Room");
@@ -411,9 +396,37 @@ namespace Common.Migrations
 
             modelBuilder.Entity("Common.Context.Entity", b =>
                 {
+                    b.HasOne("Common.Context.EntityGroup", "Group")
+                        .WithMany("Entities")
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Group");
+                });
+
+            modelBuilder.Entity("Common.Context.EntityGroup", b =>
+                {
                     b.HasOne("Common.Context.Game", "Game")
-                        .WithMany()
+                        .WithMany("EntitiesGroups")
                         .HasForeignKey("GameId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Game");
+                });
+
+            modelBuilder.Entity("Common.Context.EntityPlayed", b =>
+                {
+                    b.HasOne("Common.Context.Entity", "Entity")
+                        .WithMany()
+                        .HasForeignKey("EntityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Common.Context.GamePlayed", "GamePlayed")
+                        .WithMany("Entities")
+                        .HasForeignKey("GamePlayedId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -425,18 +438,22 @@ namespace Common.Migrations
                         .WithMany()
                         .HasForeignKey("OwnerId");
 
-                    b.Navigation("Game");
+                    b.Navigation("Entity");
+
+                    b.Navigation("GamePlayed");
 
                     b.Navigation("LastActorTouched");
 
                     b.Navigation("Owner");
                 });
 
-            modelBuilder.Entity("Common.Context.Game", b =>
+            modelBuilder.Entity("Common.Context.GamePlayed", b =>
                 {
-                    b.HasOne("Common.Context.Player", "CurrentPlayer")
-                        .WithMany()
-                        .HasForeignKey("CurrentPlayerId");
+                    b.HasOne("Common.Context.Game", "Game")
+                        .WithMany("Plays")
+                        .HasForeignKey("GameId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("Common.Context.Room", "Room")
                         .WithMany("Games")
@@ -444,20 +461,14 @@ namespace Common.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Common.Context.Player", "WinnerPlayer")
-                        .WithMany()
-                        .HasForeignKey("WinnerPlayerId");
-
-                    b.Navigation("CurrentPlayer");
+                    b.Navigation("Game");
 
                     b.Navigation("Room");
-
-                    b.Navigation("WinnerPlayer");
                 });
 
             modelBuilder.Entity("Common.Context.Player", b =>
                 {
-                    b.HasOne("Common.Context.Game", "Game")
+                    b.HasOne("Common.Context.GamePlayed", "Game")
                         .WithMany("Players")
                         .HasForeignKey("GameId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -476,59 +487,53 @@ namespace Common.Migrations
 
             modelBuilder.Entity("Common.Context.Room", b =>
                 {
-                    b.HasOne("Common.Context.Game", "CurrentGame")
-                        .WithMany()
-                        .HasForeignKey("CurrentGameId");
+                    b.HasOne("Common.Context.GamePlayed", "CurrentGame")
+                        .WithOne()
+                        .HasForeignKey("Common.Context.Room", "CurrentGameId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("Common.Context.User", "Owner")
                         .WithMany("RoomsCreated")
-                        .HasForeignKey("OwnerId");
+                        .HasForeignKey("OwnerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("CurrentGame");
 
                     b.Navigation("Owner");
                 });
 
-            modelBuilder.Entity("Common.Context.User", b =>
+            modelBuilder.Entity("Common.Context.RoomUser", b =>
                 {
                     b.HasOne("Common.Context.Room", null)
-                        .WithMany("Users")
-                        .HasForeignKey("RoomId");
-                });
-
-            modelBuilder.Entity("Common.Context.VirtualEntity", b =>
-                {
-                    b.HasOne("Common.Context.Game", "Game")
                         .WithMany()
-                        .HasForeignKey("GameId")
+                        .HasForeignKey("RoomId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Common.Context.Player", "Owner")
+                    b.HasOne("Common.Context.User", null)
                         .WithMany()
-                        .HasForeignKey("OwnerId");
-
-                    b.Navigation("Game");
-
-                    b.Navigation("Owner");
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
-            modelBuilder.Entity("Common.Games.CodeNames.Models.CodeNamesWordCard", b =>
+            modelBuilder.Entity("Common.Context.EntityGroup", b =>
                 {
-                    b.HasOne("Common.Games.CodeNames.Models.CodeNamesGame", null)
-                        .WithMany("Words")
-                        .HasForeignKey("CodeNamesGameId");
-                });
-
-            modelBuilder.Entity("Common.Games.CodeNames.Models.CodeNamesHint", b =>
-                {
-                    b.HasOne("Common.Games.CodeNames.Models.CodeNamesGame", null)
-                        .WithMany("Hints")
-                        .HasForeignKey("CodeNamesGameId");
+                    b.Navigation("Entities");
                 });
 
             modelBuilder.Entity("Common.Context.Game", b =>
                 {
+                    b.Navigation("EntitiesGroups");
+
+                    b.Navigation("Plays");
+                });
+
+            modelBuilder.Entity("Common.Context.GamePlayed", b =>
+                {
+                    b.Navigation("Entities");
+
                     b.Navigation("Players");
                 });
 
@@ -537,22 +542,15 @@ namespace Common.Migrations
                     b.Navigation("ChatMessages");
 
                     b.Navigation("Games");
-
-                    b.Navigation("Users");
                 });
 
             modelBuilder.Entity("Common.Context.User", b =>
                 {
+                    b.Navigation("ChatMessages");
+
                     b.Navigation("Players");
 
                     b.Navigation("RoomsCreated");
-                });
-
-            modelBuilder.Entity("Common.Games.CodeNames.Models.CodeNamesGame", b =>
-                {
-                    b.Navigation("Hints");
-
-                    b.Navigation("Words");
                 });
 #pragma warning restore 612, 618
         }

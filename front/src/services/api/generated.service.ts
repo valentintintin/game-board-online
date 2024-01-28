@@ -17,7 +17,8 @@ export type Scalars = {
   Float: { input: number; output: number; }
   /** The `DateTime` scalar represents an ISO-8601 compliant date time type. */
   DateTime: { input: any; output: any; }
-  UUID: { input: any; output: any; }
+  /** The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1. */
+  Long: { input: any; output: any; }
 };
 
 export enum ApplyPolicy {
@@ -29,9 +30,10 @@ export enum ApplyPolicy {
 export type ChatMessage = {
   __typename?: 'ChatMessage';
   createdAt: Scalars['DateTime']['output'];
-  id: Scalars['UUID']['output'];
+  id: Scalars['Long']['output'];
   name: Scalars['String']['output'];
   room: Room;
+  roomId: Scalars['Long']['output'];
   user?: Maybe<User>;
 };
 
@@ -40,208 +42,150 @@ export type ChatMessageSortInput = {
   id?: InputMaybe<SortEnumType>;
   name?: InputMaybe<SortEnumType>;
   room?: InputMaybe<RoomSortInput>;
+  roomId?: InputMaybe<SortEnumType>;
   user?: InputMaybe<UserSortInput>;
 };
 
-export enum CodeNamesAction {
-  GiveHint = 'GIVE_HINT',
-  MakeProposal = 'MAKE_PROPOSAL',
-  Pass = 'PASS',
-  Reset = 'RESET'
-}
-
-export type CodeNamesGame = {
-  __typename?: 'CodeNamesGame';
-  createdAt: Scalars['DateTime']['output'];
-  currentPlayer?: Maybe<Player>;
-  currentState?: Maybe<CodeNamesState>;
-  currentTeam?: Maybe<CodeNamesTeam>;
-  hints: Array<CodeNamesHint>;
-  id: Scalars['UUID']['output'];
-  name: Scalars['String']['output'];
-  players: Array<CodeNamesPlayer>;
-  room: Room;
-  state?: Maybe<Scalars['String']['output']>;
-  teamBeginning: CodeNamesTeam;
-  type: Scalars['String']['output'];
-  winnerPlayer?: Maybe<Player>;
-  winnerTeam?: Maybe<CodeNamesTeam>;
-  words: Array<CodeNamesWordCard>;
-};
-
-export type CodeNamesGiveHintEventRequestInput = {
-  hint: Scalars['String']['input'];
-  nb: Scalars['Int']['input'];
-  type: HintType;
-};
-
-export type CodeNamesHint = {
-  __typename?: 'CodeNamesHint';
-  createdAt: Scalars['DateTime']['output'];
-  game: Game;
-  id: Scalars['UUID']['output'];
-  name: Scalars['String']['output'];
-  nb: Scalars['Int']['output'];
-  owner?: Maybe<Player>;
-  team: CodeNamesTeam;
-  type: HintType;
-  word: Scalars['String']['output'];
-};
-
-export type CodeNamesMakeProposalEventRequestInput = {
-  hintId?: InputMaybe<Scalars['UUID']['input']>;
-  word: Scalars['String']['input'];
-};
-
-export type CodeNamesMutations = {
-  __typename?: 'CodeNamesMutations';
-  create?: Maybe<CodeNamesGame>;
-  giveHint?: Maybe<EventResponseOfCodeNamesGameAndCodeNamesPlayerAndCodeNamesActionAndCodeNamesHint>;
-  makeProposal?: Maybe<EventResponseOfCodeNamesGameAndCodeNamesPlayerAndCodeNamesActionAndCodeNamesWordCard>;
-  reset?: Maybe<EventResponseOfCodeNamesGameAndCodeNamesPlayerAndCodeNamesActionAndObject>;
-};
-
-
-export type CodeNamesMutationsCreateArgs = {
-  roomId: Scalars['UUID']['input'];
-};
-
-
-export type CodeNamesMutationsGiveHintArgs = {
-  data: CodeNamesGiveHintEventRequestInput;
-  gameId: Scalars['UUID']['input'];
-};
-
-
-export type CodeNamesMutationsMakeProposalArgs = {
-  data: CodeNamesMakeProposalEventRequestInput;
-  gameId: Scalars['UUID']['input'];
-};
-
-
-export type CodeNamesMutationsResetArgs = {
-  roomId: Scalars['UUID']['input'];
-};
-
-export type CodeNamesPlayer = {
-  __typename?: 'CodeNamesPlayer';
-  game: Game;
-  id: Scalars['UUID']['output'];
-  isGuesser: Scalars['Boolean']['output'];
-  name: Scalars['String']['output'];
-  team: CodeNamesTeam;
-  user: User;
-};
-
-export type CodeNamesQuery = {
-  __typename?: 'CodeNamesQuery';
-  get?: Maybe<CodeNamesGame>;
-};
-
-
-export type CodeNamesQueryGetArgs = {
-  gameId: Scalars['UUID']['input'];
-};
-
-export enum CodeNamesState {
-  End = 'END',
-  Hint = 'HINT',
-  LastProposal = 'LAST_PROPOSAL',
-  Proposal = 'PROPOSAL'
-}
-
-export enum CodeNamesTeam {
-  Black = 'BLACK',
-  Blue = 'BLUE',
-  Neutral = 'NEUTRAL',
-  Red = 'RED'
-}
-
-export type CodeNamesWordCard = {
-  __typename?: 'CodeNamesWordCard';
+export type Entity = {
+  __typename?: 'Entity';
   allowFlipOnce: Scalars['Boolean']['output'];
   canBeDeleted: Scalars['Boolean']['output'];
-  canBeShownToOthers: Scalars['Boolean']['output'];
   canFlip: Scalars['Boolean']['output'];
   canMove: Scalars['Boolean']['output'];
   canRotate: Scalars['Boolean']['output'];
-  game: Game;
+  group: EntityGroup;
   height: Scalars['Int']['output'];
-  id: Scalars['UUID']['output'];
-  image: Scalars['String']['output'];
+  id: Scalars['Long']['output'];
+  image?: Maybe<Scalars['String']['output']>;
   imageBack?: Maybe<Scalars['String']['output']>;
-  isFound: Scalars['Boolean']['output'];
-  lastActorTouched?: Maybe<Player>;
   name: Scalars['String']['output'];
   onlyForOwner: Scalars['Boolean']['output'];
-  owner?: Maybe<Player>;
+  order: Scalars['Int']['output'];
   rotation: Scalars['Int']['output'];
-  shadowColor?: Maybe<Scalars['String']['output']>;
   showBack: Scalars['Boolean']['output'];
-  team?: Maybe<CodeNamesTeam>;
   width: Scalars['Int']['output'];
-  word: Scalars['String']['output'];
   x: Scalars['Int']['output'];
   y: Scalars['Int']['output'];
 };
 
-export type EventResponseOfCodeNamesGameAndCodeNamesPlayerAndCodeNamesActionAndCodeNamesHint = {
-  __typename?: 'EventResponseOfCodeNamesGameAndCodeNamesPlayerAndCodeNamesActionAndCodeNamesHint';
-  action: CodeNamesAction;
-  data?: Maybe<CodeNamesHint>;
-  game: CodeNamesGame;
-  player: CodeNamesPlayer;
+export enum EntityFlippableState {
+  NotFlippable = 'NOT_FLIPPABLE',
+  NotShowBack = 'NOT_SHOW_BACK',
+  OnlyForOwnerIsMineNotShowBack = 'ONLY_FOR_OWNER_IS_MINE_NOT_SHOW_BACK',
+  OnlyForOwnerIsMineShowBack = 'ONLY_FOR_OWNER_IS_MINE_SHOW_BACK',
+  OnlyForOwnerShowBack = 'ONLY_FOR_OWNER_SHOW_BACK',
+  ShowBack = 'SHOW_BACK'
+}
+
+export type EntityGroup = {
+  __typename?: 'EntityGroup';
+  canRemoveNotUsed?: Maybe<Scalars['Boolean']['output']>;
+  entities: Array<Entity>;
+  game: Game;
+  gameId: Scalars['Long']['output'];
+  id: Scalars['Long']['output'];
+  imageBack?: Maybe<Scalars['String']['output']>;
+  name: Scalars['String']['output'];
+  randomize: Scalars['Boolean']['output'];
 };
 
-export type EventResponseOfCodeNamesGameAndCodeNamesPlayerAndCodeNamesActionAndCodeNamesWordCard = {
-  __typename?: 'EventResponseOfCodeNamesGameAndCodeNamesPlayerAndCodeNamesActionAndCodeNamesWordCard';
-  action: CodeNamesAction;
-  data?: Maybe<CodeNamesWordCard>;
-  game: CodeNamesGame;
-  player: CodeNamesPlayer;
+export type EntityPlayed = {
+  __typename?: 'EntityPlayed';
+  canBeDeleted: Scalars['Boolean']['output'];
+  canBeGiven: Scalars['Boolean']['output'];
+  canFlip: EntityFlippableState;
+  canMove: Scalars['Boolean']['output'];
+  canRotate: Scalars['Boolean']['output'];
+  container?: Maybe<Scalars['String']['output']>;
+  createdAt: Scalars['DateTime']['output'];
+  deleted: Scalars['Boolean']['output'];
+  entity: Entity;
+  gamePlayed: GamePlayed;
+  gamePlayedId: Scalars['Long']['output'];
+  height: Scalars['Int']['output'];
+  id: Scalars['Long']['output'];
+  image?: Maybe<Scalars['String']['output']>;
+  imageBack?: Maybe<Scalars['String']['output']>;
+  isMine: Scalars['Boolean']['output'];
+  lastActorTouched?: Maybe<Player>;
+  name?: Maybe<Scalars['String']['output']>;
+  onlyForOwner: Scalars['Boolean']['output'];
+  order: Scalars['Int']['output'];
+  owner?: Maybe<Player>;
+  ownerId?: Maybe<Scalars['Long']['output']>;
+  rotation: Scalars['Int']['output'];
+  showBack: Scalars['Boolean']['output'];
+  width: Scalars['Int']['output'];
+  x: Scalars['Int']['output'];
+  y: Scalars['Int']['output'];
 };
 
-export type EventResponseOfCodeNamesGameAndCodeNamesPlayerAndCodeNamesActionAndObject = {
-  __typename?: 'EventResponseOfCodeNamesGameAndCodeNamesPlayerAndCodeNamesActionAndObject';
-  action: CodeNamesAction;
-  game: CodeNamesGame;
-  player: CodeNamesPlayer;
+export type EntityUpdateDtoInput = {
+  rotation: Scalars['Int']['input'];
+  showBack: Scalars['Boolean']['input'];
+  x: Scalars['Int']['input'];
+  y: Scalars['Int']['input'];
 };
 
 export type Game = {
   __typename?: 'Game';
-  createdAt: Scalars['DateTime']['output'];
-  id: Scalars['UUID']['output'];
+  entitiesGroups: Array<EntityGroup>;
+  id: Scalars['Long']['output'];
+  image?: Maybe<Scalars['String']['output']>;
+  minPlayers: Scalars['Int']['output'];
   name: Scalars['String']['output'];
-  players: Array<Player>;
   type: Scalars['String']['output'];
 };
 
-export type GameSortInput = {
-  createdAt?: InputMaybe<SortEnumType>;
-  currentPlayer?: InputMaybe<PlayerSortInput>;
-  id?: InputMaybe<SortEnumType>;
-  name?: InputMaybe<SortEnumType>;
-  room?: InputMaybe<RoomSortInput>;
-  state?: InputMaybe<SortEnumType>;
-  type?: InputMaybe<SortEnumType>;
-  winnerPlayer?: InputMaybe<PlayerSortInput>;
+export type GamePlayed = {
+  __typename?: 'GamePlayed';
+  createdAt: Scalars['DateTime']['output'];
+  entities?: Maybe<Array<Maybe<EntityPlayed>>>;
+  entitiesGroups?: Maybe<Array<Maybe<EntityGroup>>>;
+  game: Game;
+  gameId: Scalars['Long']['output'];
+  id: Scalars['Long']['output'];
+  isFinished: Scalars['Boolean']['output'];
+  players: Array<Player>;
+  room: Room;
+  roomId: Scalars['Long']['output'];
 };
 
-export enum HintType {
-  Infinite = 'INFINITE',
-  Nb = 'NB',
-  Zero = 'ZERO'
-}
+export type GamePlayedSortInput = {
+  createdAt?: InputMaybe<SortEnumType>;
+  game?: InputMaybe<GameSortInput>;
+  gameId?: InputMaybe<SortEnumType>;
+  id?: InputMaybe<SortEnumType>;
+  isFinished?: InputMaybe<SortEnumType>;
+  room?: InputMaybe<RoomSortInput>;
+  roomId?: InputMaybe<SortEnumType>;
+};
+
+export type GameSortInput = {
+  enabled?: InputMaybe<SortEnumType>;
+  id?: InputMaybe<SortEnumType>;
+  image?: InputMaybe<SortEnumType>;
+  minPlayers?: InputMaybe<SortEnumType>;
+  name?: InputMaybe<SortEnumType>;
+  type?: InputMaybe<SortEnumType>;
+};
 
 export type Mutation = {
   __typename?: 'Mutation';
-  codeNames: CodeNamesMutations;
   createRoom?: Maybe<Room>;
+  deleteEntitiesNotTouched: Array<EntityPlayed>;
+  gameDeleteEntity: EntityPlayed;
+  gameFlipEntity: EntityPlayed;
+  gameGiveEntity: EntityPlayed;
+  gameMoveEntity: EntityPlayed;
+  gameRotateEntity: EntityPlayed;
+  initializeGame?: Maybe<GamePlayed>;
   joinRoom?: Maybe<Room>;
   leaveRoom?: Maybe<Room>;
   login?: Maybe<User>;
   sendChatMessage?: Maybe<ChatMessage>;
+  setCurrentGame?: Maybe<Room>;
+  updateEntity: Array<Entity>;
 };
 
 
@@ -250,13 +194,58 @@ export type MutationCreateRoomArgs = {
 };
 
 
+export type MutationDeleteEntitiesNotTouchedArgs = {
+  gamePlayedId: Scalars['Long']['input'];
+};
+
+
+export type MutationGameDeleteEntityArgs = {
+  entityPlayedId: Scalars['Long']['input'];
+};
+
+
+export type MutationGameFlipEntityArgs = {
+  entityPlayedId: Scalars['Long']['input'];
+  onlyForOwner?: InputMaybe<Scalars['Boolean']['input']>;
+  showBack: Scalars['Boolean']['input'];
+};
+
+
+export type MutationGameGiveEntityArgs = {
+  container?: InputMaybe<Scalars['String']['input']>;
+  entityPlayedId: Scalars['Long']['input'];
+  newPlayerId: Scalars['Long']['input'];
+};
+
+
+export type MutationGameMoveEntityArgs = {
+  container?: InputMaybe<Scalars['String']['input']>;
+  entityPlayedId: Scalars['Long']['input'];
+  x: Scalars['Int']['input'];
+  y: Scalars['Int']['input'];
+};
+
+
+export type MutationGameRotateEntityArgs = {
+  entityPlayedId: Scalars['Long']['input'];
+  rotation: Scalars['Int']['input'];
+};
+
+
+export type MutationInitializeGameArgs = {
+  gameId: Scalars['Long']['input'];
+  roomId: Scalars['Long']['input'];
+};
+
+
 export type MutationJoinRoomArgs = {
-  roomId: Scalars['UUID']['input'];
+  roomId: Scalars['Long']['input'];
 };
 
 
 export type MutationLeaveRoomArgs = {
-  roomId: Scalars['UUID']['input'];
+  roomId: Scalars['Long']['input'];
+  userId: Scalars['Long']['input'];
 };
 
 
@@ -268,46 +257,68 @@ export type MutationLoginArgs = {
 
 export type MutationSendChatMessageArgs = {
   message: Scalars['String']['input'];
-  roomId: Scalars['UUID']['input'];
+  roomId: Scalars['Long']['input'];
+};
+
+
+export type MutationSetCurrentGameArgs = {
+  gamePlayedId: Scalars['Long']['input'];
+  roomId: Scalars['Long']['input'];
+};
+
+
+export type MutationUpdateEntityArgs = {
+  dto: EntityUpdateDtoInput;
+  entityId: Scalars['Long']['input'];
 };
 
 export type Player = {
   __typename?: 'Player';
-  game: Game;
-  id: Scalars['UUID']['output'];
-  name: Scalars['String']['output'];
+  game: GamePlayed;
+  gameId: Scalars['Long']['output'];
+  id: Scalars['Long']['output'];
   user: User;
-};
-
-export type PlayerSortInput = {
-  game?: InputMaybe<GameSortInput>;
-  id?: InputMaybe<SortEnumType>;
-  name?: InputMaybe<SortEnumType>;
-  user?: InputMaybe<UserSortInput>;
+  userId: Scalars['Long']['output'];
 };
 
 export type Query = {
   __typename?: 'Query';
-  codeNames: CodeNamesQuery;
+  game?: Maybe<Game>;
+  gamePlayed?: Maybe<GamePlayed>;
+  games: Array<Game>;
   me?: Maybe<User>;
   room?: Maybe<Room>;
   rooms: Array<Room>;
 };
 
 
+export type QueryGameArgs = {
+  gameId: Scalars['Long']['input'];
+};
+
+
+export type QueryGamePlayedArgs = {
+  gamePlayedId: Scalars['Long']['input'];
+};
+
+
 export type QueryRoomArgs = {
-  roomId: Scalars['UUID']['input'];
+  roomId: Scalars['Long']['input'];
 };
 
 export type Room = {
   __typename?: 'Room';
   chatMessages: Array<ChatMessage>;
   createdAt: Scalars['DateTime']['output'];
-  currentGame?: Maybe<Game>;
-  games: Array<Game>;
-  id: Scalars['UUID']['output'];
+  currentGame?: Maybe<GamePlayed>;
+  currentGameId?: Maybe<Scalars['Long']['output']>;
+  games: Array<GamePlayed>;
+  id: Scalars['Long']['output'];
   name: Scalars['String']['output'];
   owner: User;
+  ownerId: Scalars['Long']['output'];
+  userConnectedIsInside: Scalars['Boolean']['output'];
+  userConnectedIsOwner: Scalars['Boolean']['output'];
   users: Array<User>;
 };
 
@@ -318,10 +329,12 @@ export type RoomChatMessagesArgs = {
 
 export type RoomSortInput = {
   createdAt?: InputMaybe<SortEnumType>;
-  currentGame?: InputMaybe<GameSortInput>;
+  currentGame?: InputMaybe<GamePlayedSortInput>;
+  currentGameId?: InputMaybe<SortEnumType>;
   id?: InputMaybe<SortEnumType>;
   name?: InputMaybe<SortEnumType>;
   owner?: InputMaybe<UserSortInput>;
+  ownerId?: InputMaybe<SortEnumType>;
 };
 
 export enum SortEnumType {
@@ -332,18 +345,18 @@ export enum SortEnumType {
 export type Subscription = {
   __typename?: 'Subscription';
   chatMessage?: Maybe<ChatMessage>;
-  giveHint: EventResponseOfCodeNamesGameAndCodeNamesPlayerAndCodeNamesActionAndCodeNamesHint;
-  makeProposal: EventResponseOfCodeNamesGameAndCodeNamesPlayerAndCodeNamesActionAndCodeNamesWordCard;
-  reset: EventResponseOfCodeNamesGameAndCodeNamesPlayerAndCodeNamesActionAndObject;
+  gameAction?: Maybe<EntityPlayed>;
+  newRoom?: Maybe<Room>;
+  roomAction?: Maybe<Room>;
 };
 
 export type User = {
   __typename?: 'User';
   color: Scalars['String']['output'];
   createdAt: Scalars['DateTime']['output'];
-  id: Scalars['UUID']['output'];
+  id: Scalars['Long']['output'];
+  joinedRooms: Array<Room>;
   name: Scalars['String']['output'];
-  players: Array<Player>;
   roomsCreated: Array<Room>;
   token?: Maybe<Scalars['String']['output']>;
 };
@@ -355,33 +368,22 @@ export type UserSortInput = {
   name?: InputMaybe<SortEnumType>;
 };
 
-export type GiveHintQueryMutationVariables = Exact<{
-  gameId: Scalars['UUID']['input'];
-  hint: Scalars['String']['input'];
-  nb: Scalars['Int']['input'];
-  type: HintType;
+export type GetGameQueryVariables = Exact<{
+  gameId: Scalars['Long']['input'];
 }>;
 
 
-export type GiveHintQueryMutation = { __typename?: 'Mutation', codeNames: { __typename?: 'CodeNamesMutations', giveHint?: { __typename?: 'EventResponseOfCodeNamesGameAndCodeNamesPlayerAndCodeNamesActionAndCodeNamesHint', action: CodeNamesAction } | null } };
+export type GetGameQuery = { __typename?: 'Query', game?: { __typename?: 'Game', id: any, name: string, entitiesGroups: Array<{ __typename?: 'EntityGroup', id: any, name: string, entities: Array<{ __typename?: 'Entity', id: any, name: string, x: number, y: number, rotation: number, showBack: boolean, width: number, height: number, order: number, image?: string | null, imageBack?: string | null, canFlip: boolean, canMove: boolean, canRotate: boolean, canBeDeleted: boolean, group: { __typename?: 'EntityGroup', id: any, name: string } }> }> } | null };
 
-export type GetCodeNamesQueryVariables = Exact<{
-  gameId: Scalars['UUID']['input'];
+export type CreateRoomMutationVariables = Exact<{
+  name: Scalars['String']['input'];
 }>;
 
 
-export type GetCodeNamesQuery = { __typename?: 'Query', codeNames: { __typename?: 'CodeNamesQuery', get?: { __typename?: 'CodeNamesGame', id: any, currentState?: CodeNamesState | null, currentTeam?: CodeNamesTeam | null, winnerTeam?: CodeNamesTeam | null, currentPlayer?: { __typename?: 'Player', id: any, name: string } | null, players: Array<{ __typename?: 'CodeNamesPlayer', id: any, name: string, team: CodeNamesTeam }>, words: Array<{ __typename?: 'CodeNamesWordCard', id: any, word: string, team?: CodeNamesTeam | null, isFound: boolean }>, hints: Array<{ __typename?: 'CodeNamesHint', id: any, team: CodeNamesTeam, word: string, nb: number, owner?: { __typename?: 'Player', id: any, name: string } | null }> } | null } };
-
-export type CodeNameMakeProposalMutationVariables = Exact<{
-  gameId: Scalars['UUID']['input'];
-  word: Scalars['String']['input'];
-}>;
-
-
-export type CodeNameMakeProposalMutation = { __typename?: 'Mutation', codeNames: { __typename?: 'CodeNamesMutations', makeProposal?: { __typename?: 'EventResponseOfCodeNamesGameAndCodeNamesPlayerAndCodeNamesActionAndCodeNamesWordCard', action: CodeNamesAction } | null } };
+export type CreateRoomMutation = { __typename?: 'Mutation', createRoom?: { __typename?: 'Room', id: any, name: string } | null };
 
 export type SendMessageMutationVariables = Exact<{
-  roomId: Scalars['UUID']['input'];
+  roomId: Scalars['Long']['input'];
   message: Scalars['String']['input'];
 }>;
 
@@ -389,16 +391,124 @@ export type SendMessageMutationVariables = Exact<{
 export type SendMessageMutation = { __typename?: 'Mutation', sendChatMessage?: { __typename?: 'ChatMessage', id: any } | null };
 
 export type GetMessagesQueryVariables = Exact<{
-  roomId: Scalars['UUID']['input'];
+  roomId: Scalars['Long']['input'];
 }>;
 
 
 export type GetMessagesQuery = { __typename?: 'Query', room?: { __typename?: 'Room', id: any, chatMessages: Array<{ __typename?: 'ChatMessage', id: any, createdAt: any, name: string, user?: { __typename?: 'User', id: any, name: string, color: string } | null }> } | null };
 
-export type RoomsQueryVariables = Exact<{ [key: string]: never; }>;
+export type GetGamePlayedQueryVariables = Exact<{
+  gamePlayedId: Scalars['Long']['input'];
+}>;
 
 
-export type RoomsQuery = { __typename?: 'Query', rooms: Array<{ __typename?: 'Room', id: any, name: string, createdAt: any, owner: { __typename?: 'User', id: any, name: string }, users: Array<{ __typename?: 'User', id: any, name: string }>, currentGame?: { __typename?: 'Game', id: any, name: string } | null }> };
+export type GetGamePlayedQuery = { __typename?: 'Query', gamePlayed?: { __typename?: 'GamePlayed', id: any, players: Array<{ __typename?: 'Player', id: any, user: { __typename?: 'User', id: any, name: string, color: string } }>, game: { __typename?: 'Game', id: any, name: string }, room: { __typename?: 'Room', id: any, name: string }, entitiesGroups?: Array<{ __typename?: 'EntityGroup', id: any, name: string, randomize: boolean, canRemoveNotUsed?: boolean | null } | null> | null, entities?: Array<{ __typename?: 'EntityPlayed', id: any, image?: string | null, imageBack?: string | null, width: number, height: number, order: number, name?: string | null, canFlip: EntityFlippableState, canMove: boolean, canRotate: boolean, canBeDeleted: boolean, isMine: boolean, x: number, y: number, rotation: number, container?: string | null, showBack: boolean, deleted: boolean, onlyForOwner: boolean, owner?: { __typename?: 'Player', id: any, user: { __typename?: 'User', id: any, name: string, color: string } } | null } | null> | null } | null };
+
+export type GameActionSubscriptionVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GameActionSubscription = { __typename?: 'Subscription', gameAction?: { __typename?: 'EntityPlayed', id: any, name?: string | null, canFlip: EntityFlippableState, canMove: boolean, canRotate: boolean, canBeDeleted: boolean, isMine: boolean, x: number, y: number, rotation: number, container?: string | null, showBack: boolean, deleted: boolean, onlyForOwner: boolean, owner?: { __typename?: 'Player', id: any, user: { __typename?: 'User', id: any, name: string, color: string } } | null } | null };
+
+export type MoveEntityMutationVariables = Exact<{
+  entityPlayedId: Scalars['Long']['input'];
+  x: Scalars['Int']['input'];
+  y: Scalars['Int']['input'];
+  container?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type MoveEntityMutation = { __typename?: 'Mutation', gameMoveEntity: { __typename?: 'EntityPlayed', id: any, container?: string | null, x: number, y: number, isMine: boolean, owner?: { __typename?: 'Player', id: any, user: { __typename?: 'User', id: any } } | null } };
+
+export type FlipEntityMutationVariables = Exact<{
+  entityPlayedId: Scalars['Long']['input'];
+  showBack: Scalars['Boolean']['input'];
+  onlyForOwner?: InputMaybe<Scalars['Boolean']['input']>;
+}>;
+
+
+export type FlipEntityMutation = { __typename?: 'Mutation', gameFlipEntity: { __typename?: 'EntityPlayed', id: any, name?: string | null, showBack: boolean, canFlip: EntityFlippableState, onlyForOwner: boolean, container?: string | null, isMine: boolean, owner?: { __typename?: 'Player', id: any, user: { __typename?: 'User', id: any } } | null } };
+
+export type RotateEntityMutationVariables = Exact<{
+  entityPlayedId: Scalars['Long']['input'];
+  rotation: Scalars['Int']['input'];
+}>;
+
+
+export type RotateEntityMutation = { __typename?: 'Mutation', gameRotateEntity: { __typename?: 'EntityPlayed', id: any, rotation: number, isMine: boolean, owner?: { __typename?: 'Player', id: any, user: { __typename?: 'User', id: any } } | null } };
+
+export type DeleteEntityMutationVariables = Exact<{
+  entityPlayedId: Scalars['Long']['input'];
+}>;
+
+
+export type DeleteEntityMutation = { __typename?: 'Mutation', gameDeleteEntity: { __typename?: 'EntityPlayed', id: any, deleted: boolean, isMine: boolean, owner?: { __typename?: 'Player', id: any, user: { __typename?: 'User', id: any } } | null } };
+
+export type GiveEntityMutationVariables = Exact<{
+  entityPlayedId: Scalars['Long']['input'];
+  newPlayerId: Scalars['Long']['input'];
+  container?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type GiveEntityMutation = { __typename?: 'Mutation', gameGiveEntity: { __typename?: 'EntityPlayed', id: any, isMine: boolean, owner?: { __typename?: 'Player', id: any, user: { __typename?: 'User', id: any } } | null } };
+
+export type GetRoomQueryVariables = Exact<{
+  roomId: Scalars['Long']['input'];
+}>;
+
+
+export type GetRoomQuery = { __typename?: 'Query', room?: { __typename?: 'Room', id: any, name: string, userConnectedIsOwner: boolean, users: Array<{ __typename?: 'User', id: any, name: string, color: string }>, games: Array<{ __typename?: 'GamePlayed', id: any, createdAt: any, isFinished: boolean }>, currentGame?: { __typename?: 'GamePlayed', id: any, createdAt: any, isFinished: boolean, game: { __typename?: 'Game', id: any, name: string, image?: string | null } } | null } | null };
+
+export type GetGamesQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetGamesQuery = { __typename?: 'Query', games: Array<{ __typename?: 'Game', id: any, name: string, image?: string | null }> };
+
+export type UpdateRoomSubscriptionVariables = Exact<{ [key: string]: never; }>;
+
+
+export type UpdateRoomSubscription = { __typename?: 'Subscription', roomAction?: { __typename?: 'Room', id: any } | null };
+
+export type InitGameMutationVariables = Exact<{
+  roomId: Scalars['Long']['input'];
+  gameId: Scalars['Long']['input'];
+}>;
+
+
+export type InitGameMutation = { __typename?: 'Mutation', initializeGame?: { __typename?: 'GamePlayed', id: any } | null };
+
+export type LeaveRoomMutationVariables = Exact<{
+  roomId: Scalars['Long']['input'];
+  userId: Scalars['Long']['input'];
+}>;
+
+
+export type LeaveRoomMutation = { __typename?: 'Mutation', leaveRoom?: { __typename?: 'Room', id: any } | null };
+
+export type GetRoomsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetRoomsQuery = { __typename?: 'Query', rooms: Array<{ __typename?: 'Room', id: any, name: string, createdAt: any, userConnectedIsInside: boolean, owner: { __typename?: 'User', id: any, name: string, color: string } }> };
+
+export type NewRoomSubscriptionVariables = Exact<{ [key: string]: never; }>;
+
+
+export type NewRoomSubscription = { __typename?: 'Subscription', newRoom?: { __typename?: 'Room', id: any } | null };
+
+export type JoinRoomMutationVariables = Exact<{
+  roomId: Scalars['Long']['input'];
+}>;
+
+
+export type JoinRoomMutation = { __typename?: 'Mutation', joinRoom?: { __typename?: 'Room', id: any } | null };
+
+export type UpdateEntityMutationVariables = Exact<{
+  entityId: Scalars['Long']['input'];
+  dto: EntityUpdateDtoInput;
+}>;
+
+
+export type UpdateEntityMutation = { __typename?: 'Mutation', updateEntity: Array<{ __typename?: 'Entity', id: any, name: string, x: number, y: number, rotation: number, showBack: boolean }> };
 
 export type LoginMutationVariables = Exact<{
   name: Scalars['String']['input'];
@@ -413,55 +523,31 @@ export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type MeQuery = { __typename?: 'Query', me?: { __typename?: 'User', id: any, name: string, color: string } | null };
 
-export const GiveHintQueryDocument = gql`
-    mutation giveHintQuery($gameId: UUID!, $hint: String!, $nb: Int!, $type: HintType!) {
-  codeNames {
-    giveHint(gameId: $gameId, data: {hint: $hint, nb: $nb, type: $type}) {
-      action
-    }
-  }
-}
-    `;
-
-  @Injectable({
-    providedIn: 'root'
-  })
-  export class GiveHintQueryGQL extends Apollo.Mutation<GiveHintQueryMutation, GiveHintQueryMutationVariables> {
-    override document = GiveHintQueryDocument;
-    
-    constructor(apollo: Apollo.Apollo) {
-      super(apollo);
-    }
-  }
-export const GetCodeNamesDocument = gql`
-    query getCodeNames($gameId: UUID!) {
-  codeNames {
-    get(gameId: $gameId) {
+export const GetGameDocument = gql`
+    query getGame($gameId: Long!) {
+  game(gameId: $gameId) {
+    id
+    name
+    entitiesGroups {
       id
-      currentState
-      currentTeam
-      winnerTeam
-      currentPlayer {
+      name
+      entities {
         id
         name
-      }
-      players {
-        id
-        name
-        team
-      }
-      words {
-        id
-        word
-        team
-        isFound
-      }
-      hints {
-        id
-        team
-        word
-        nb
-        owner {
+        x
+        y
+        rotation
+        showBack
+        width
+        height
+        order
+        image
+        imageBack
+        canFlip
+        canMove
+        canRotate
+        canBeDeleted
+        group {
           id
           name
         }
@@ -474,19 +560,18 @@ export const GetCodeNamesDocument = gql`
   @Injectable({
     providedIn: 'root'
   })
-  export class GetCodeNamesGQL extends Apollo.Query<GetCodeNamesQuery, GetCodeNamesQueryVariables> {
-    override document = GetCodeNamesDocument;
+  export class GetGameGQL extends Apollo.Query<GetGameQuery, GetGameQueryVariables> {
+    override document = GetGameDocument;
     
     constructor(apollo: Apollo.Apollo) {
       super(apollo);
     }
   }
-export const CodeNameMakeProposalDocument = gql`
-    mutation codeNameMakeProposal($gameId: UUID!, $word: String!) {
-  codeNames {
-    makeProposal(gameId: $gameId, data: {word: $word}) {
-      action
-    }
+export const CreateRoomDocument = gql`
+    mutation createRoom($name: String!) {
+  createRoom(name: $name) {
+    id
+    name
   }
 }
     `;
@@ -494,15 +579,15 @@ export const CodeNameMakeProposalDocument = gql`
   @Injectable({
     providedIn: 'root'
   })
-  export class CodeNameMakeProposalGQL extends Apollo.Mutation<CodeNameMakeProposalMutation, CodeNameMakeProposalMutationVariables> {
-    override document = CodeNameMakeProposalDocument;
+  export class CreateRoomGQL extends Apollo.Mutation<CreateRoomMutation, CreateRoomMutationVariables> {
+    override document = CreateRoomDocument;
     
     constructor(apollo: Apollo.Apollo) {
       super(apollo);
     }
   }
 export const SendMessageDocument = gql`
-    mutation sendMessage($roomId: UUID!, $message: String!) {
+    mutation sendMessage($roomId: Long!, $message: String!) {
   sendChatMessage(roomId: $roomId, message: $message) {
     id
   }
@@ -520,7 +605,7 @@ export const SendMessageDocument = gql`
     }
   }
 export const GetMessagesDocument = gql`
-    query getMessages($roomId: UUID!) {
+    query getMessages($roomId: Long!) {
   room(roomId: $roomId) {
     id
     chatMessages(order: {createdAt: DESC}) {
@@ -547,23 +632,60 @@ export const GetMessagesDocument = gql`
       super(apollo);
     }
   }
-export const RoomsDocument = gql`
-    query rooms {
-  rooms {
+export const GetGamePlayedDocument = gql`
+    query getGamePlayed($gamePlayedId: Long!) {
+  gamePlayed(gamePlayedId: $gamePlayedId) {
     id
-    name
-    createdAt
-    owner {
+    players {
+      id
+      user {
+        id
+        name
+        color
+      }
+    }
+    game {
       id
       name
     }
-    users {
+    room {
       id
       name
     }
-    currentGame {
+    entitiesGroups {
       id
       name
+      randomize
+      canRemoveNotUsed
+    }
+    entities {
+      id
+      image
+      imageBack
+      width
+      height
+      order
+      name
+      canFlip
+      canMove
+      canRotate
+      canBeDeleted
+      isMine
+      x
+      y
+      rotation
+      container
+      showBack
+      deleted
+      onlyForOwner
+      owner {
+        id
+        user {
+          id
+          name
+          color
+        }
+      }
     }
   }
 }
@@ -572,8 +694,394 @@ export const RoomsDocument = gql`
   @Injectable({
     providedIn: 'root'
   })
-  export class RoomsGQL extends Apollo.Query<RoomsQuery, RoomsQueryVariables> {
-    override document = RoomsDocument;
+  export class GetGamePlayedGQL extends Apollo.Query<GetGamePlayedQuery, GetGamePlayedQueryVariables> {
+    override document = GetGamePlayedDocument;
+    
+    constructor(apollo: Apollo.Apollo) {
+      super(apollo);
+    }
+  }
+export const GameActionDocument = gql`
+    subscription gameAction {
+  gameAction {
+    id
+    name
+    canFlip
+    canMove
+    canRotate
+    canBeDeleted
+    isMine
+    x
+    y
+    rotation
+    container
+    showBack
+    deleted
+    onlyForOwner
+    owner {
+      id
+      user {
+        id
+        name
+        color
+      }
+    }
+  }
+}
+    `;
+
+  @Injectable({
+    providedIn: 'root'
+  })
+  export class GameActionGQL extends Apollo.Subscription<GameActionSubscription, GameActionSubscriptionVariables> {
+    override document = GameActionDocument;
+    
+    constructor(apollo: Apollo.Apollo) {
+      super(apollo);
+    }
+  }
+export const MoveEntityDocument = gql`
+    mutation moveEntity($entityPlayedId: Long!, $x: Int!, $y: Int!, $container: String) {
+  gameMoveEntity(
+    entityPlayedId: $entityPlayedId
+    x: $x
+    y: $y
+    container: $container
+  ) {
+    id
+    container
+    x
+    y
+    isMine
+    owner {
+      id
+      user {
+        id
+      }
+    }
+  }
+}
+    `;
+
+  @Injectable({
+    providedIn: 'root'
+  })
+  export class MoveEntityGQL extends Apollo.Mutation<MoveEntityMutation, MoveEntityMutationVariables> {
+    override document = MoveEntityDocument;
+    
+    constructor(apollo: Apollo.Apollo) {
+      super(apollo);
+    }
+  }
+export const FlipEntityDocument = gql`
+    mutation flipEntity($entityPlayedId: Long!, $showBack: Boolean!, $onlyForOwner: Boolean) {
+  gameFlipEntity(
+    entityPlayedId: $entityPlayedId
+    showBack: $showBack
+    onlyForOwner: $onlyForOwner
+  ) {
+    id
+    name
+    showBack
+    canFlip
+    onlyForOwner
+    container
+    isMine
+    owner {
+      id
+      user {
+        id
+      }
+    }
+  }
+}
+    `;
+
+  @Injectable({
+    providedIn: 'root'
+  })
+  export class FlipEntityGQL extends Apollo.Mutation<FlipEntityMutation, FlipEntityMutationVariables> {
+    override document = FlipEntityDocument;
+    
+    constructor(apollo: Apollo.Apollo) {
+      super(apollo);
+    }
+  }
+export const RotateEntityDocument = gql`
+    mutation rotateEntity($entityPlayedId: Long!, $rotation: Int!) {
+  gameRotateEntity(entityPlayedId: $entityPlayedId, rotation: $rotation) {
+    id
+    rotation
+    isMine
+    owner {
+      id
+      user {
+        id
+      }
+    }
+  }
+}
+    `;
+
+  @Injectable({
+    providedIn: 'root'
+  })
+  export class RotateEntityGQL extends Apollo.Mutation<RotateEntityMutation, RotateEntityMutationVariables> {
+    override document = RotateEntityDocument;
+    
+    constructor(apollo: Apollo.Apollo) {
+      super(apollo);
+    }
+  }
+export const DeleteEntityDocument = gql`
+    mutation deleteEntity($entityPlayedId: Long!) {
+  gameDeleteEntity(entityPlayedId: $entityPlayedId) {
+    id
+    deleted
+    isMine
+    owner {
+      id
+      user {
+        id
+      }
+    }
+  }
+}
+    `;
+
+  @Injectable({
+    providedIn: 'root'
+  })
+  export class DeleteEntityGQL extends Apollo.Mutation<DeleteEntityMutation, DeleteEntityMutationVariables> {
+    override document = DeleteEntityDocument;
+    
+    constructor(apollo: Apollo.Apollo) {
+      super(apollo);
+    }
+  }
+export const GiveEntityDocument = gql`
+    mutation giveEntity($entityPlayedId: Long!, $newPlayerId: Long!, $container: String) {
+  gameGiveEntity(
+    entityPlayedId: $entityPlayedId
+    newPlayerId: $newPlayerId
+    container: $container
+  ) {
+    id
+    isMine
+    owner {
+      id
+      user {
+        id
+      }
+    }
+  }
+}
+    `;
+
+  @Injectable({
+    providedIn: 'root'
+  })
+  export class GiveEntityGQL extends Apollo.Mutation<GiveEntityMutation, GiveEntityMutationVariables> {
+    override document = GiveEntityDocument;
+    
+    constructor(apollo: Apollo.Apollo) {
+      super(apollo);
+    }
+  }
+export const GetRoomDocument = gql`
+    query getRoom($roomId: Long!) {
+  room(roomId: $roomId) {
+    id
+    name
+    userConnectedIsOwner
+    users {
+      id
+      name
+      color
+    }
+    games {
+      id
+      createdAt
+      isFinished
+    }
+    currentGame {
+      id
+      createdAt
+      isFinished
+      game {
+        id
+        name
+        image
+      }
+    }
+  }
+}
+    `;
+
+  @Injectable({
+    providedIn: 'root'
+  })
+  export class GetRoomGQL extends Apollo.Query<GetRoomQuery, GetRoomQueryVariables> {
+    override document = GetRoomDocument;
+    
+    constructor(apollo: Apollo.Apollo) {
+      super(apollo);
+    }
+  }
+export const GetGamesDocument = gql`
+    query getGames {
+  games {
+    id
+    name
+    image
+  }
+}
+    `;
+
+  @Injectable({
+    providedIn: 'root'
+  })
+  export class GetGamesGQL extends Apollo.Query<GetGamesQuery, GetGamesQueryVariables> {
+    override document = GetGamesDocument;
+    
+    constructor(apollo: Apollo.Apollo) {
+      super(apollo);
+    }
+  }
+export const UpdateRoomDocument = gql`
+    subscription updateRoom {
+  roomAction {
+    id
+  }
+}
+    `;
+
+  @Injectable({
+    providedIn: 'root'
+  })
+  export class UpdateRoomGQL extends Apollo.Subscription<UpdateRoomSubscription, UpdateRoomSubscriptionVariables> {
+    override document = UpdateRoomDocument;
+    
+    constructor(apollo: Apollo.Apollo) {
+      super(apollo);
+    }
+  }
+export const InitGameDocument = gql`
+    mutation initGame($roomId: Long!, $gameId: Long!) {
+  initializeGame(roomId: $roomId, gameId: $gameId) {
+    id
+  }
+}
+    `;
+
+  @Injectable({
+    providedIn: 'root'
+  })
+  export class InitGameGQL extends Apollo.Mutation<InitGameMutation, InitGameMutationVariables> {
+    override document = InitGameDocument;
+    
+    constructor(apollo: Apollo.Apollo) {
+      super(apollo);
+    }
+  }
+export const LeaveRoomDocument = gql`
+    mutation leaveRoom($roomId: Long!, $userId: Long!) {
+  leaveRoom(roomId: $roomId, userId: $userId) {
+    id
+  }
+}
+    `;
+
+  @Injectable({
+    providedIn: 'root'
+  })
+  export class LeaveRoomGQL extends Apollo.Mutation<LeaveRoomMutation, LeaveRoomMutationVariables> {
+    override document = LeaveRoomDocument;
+    
+    constructor(apollo: Apollo.Apollo) {
+      super(apollo);
+    }
+  }
+export const GetRoomsDocument = gql`
+    query getRooms {
+  rooms {
+    id
+    name
+    createdAt
+    userConnectedIsInside
+    owner {
+      id
+      name
+      color
+    }
+  }
+}
+    `;
+
+  @Injectable({
+    providedIn: 'root'
+  })
+  export class GetRoomsGQL extends Apollo.Query<GetRoomsQuery, GetRoomsQueryVariables> {
+    override document = GetRoomsDocument;
+    
+    constructor(apollo: Apollo.Apollo) {
+      super(apollo);
+    }
+  }
+export const NewRoomDocument = gql`
+    subscription newRoom {
+  newRoom {
+    id
+  }
+}
+    `;
+
+  @Injectable({
+    providedIn: 'root'
+  })
+  export class NewRoomGQL extends Apollo.Subscription<NewRoomSubscription, NewRoomSubscriptionVariables> {
+    override document = NewRoomDocument;
+    
+    constructor(apollo: Apollo.Apollo) {
+      super(apollo);
+    }
+  }
+export const JoinRoomDocument = gql`
+    mutation joinRoom($roomId: Long!) {
+  joinRoom(roomId: $roomId) {
+    id
+  }
+}
+    `;
+
+  @Injectable({
+    providedIn: 'root'
+  })
+  export class JoinRoomGQL extends Apollo.Mutation<JoinRoomMutation, JoinRoomMutationVariables> {
+    override document = JoinRoomDocument;
+    
+    constructor(apollo: Apollo.Apollo) {
+      super(apollo);
+    }
+  }
+export const UpdateEntityDocument = gql`
+    mutation updateEntity($entityId: Long!, $dto: EntityUpdateDtoInput!) {
+  updateEntity(entityId: $entityId, dto: $dto) {
+    id
+    name
+    x
+    y
+    rotation
+    showBack
+  }
+}
+    `;
+
+  @Injectable({
+    providedIn: 'root'
+  })
+  export class UpdateEntityGQL extends Apollo.Mutation<UpdateEntityMutation, UpdateEntityMutationVariables> {
+    override document = UpdateEntityDocument;
     
     constructor(apollo: Apollo.Apollo) {
       super(apollo);

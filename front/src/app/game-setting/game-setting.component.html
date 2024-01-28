@@ -1,0 +1,45 @@
+<nz-spin [nzSpinning]="loading">
+  <nz-page-header
+    [nzTitle]="'Modification du jeu ' + (game$()?.name ?? '')"
+  ></nz-page-header>
+
+  <nz-layout>
+    <nz-content>
+      <div class="content">
+        <div class="segmentedEntities"></div>
+
+        <div id="main" class="entities">
+          @for (group of game$()?.entitiesGroups ?? []; track group.id) {
+            <div class="group" [id]="'group-' + group.id">
+              @for (entity of group.entities ?? []; track entity!.id) {
+                <div class="entity" cdkDrag [id]="'entity-' + entity!.id"
+                     (click)="click(entity)"
+                     (cdkDragEnded)="move(entity, $event)"
+                     [cdkDragFreeDragPosition]="{ x: entity!.x!, y: entity!.y! }"
+                     [style.z-index]="entity!.order">
+                  <app-game-setting-entity [entity]="entity"></app-game-setting-entity>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+    </nz-content>
+    <nz-sider nzTheme="light" nzWidth="300px">
+      <div>
+        <button nz-button (click)="refresh()">Recharger</button>
+      </div>
+
+      @if (entitySelected)
+      {
+        <nz-descriptions [nzTitle]="entitySelected.name" nzSize="small" nzLayout="vertical" nzBordered="true">
+          <nz-descriptions-item nzTitle="ID">#{{ entitySelected.id }}</nz-descriptions-item>
+          <nz-descriptions-item nzTitle="Groupe">{{ entitySelected.group.name }}</nz-descriptions-item>
+          <nz-descriptions-item nzTitle="Groupe ID">#{{ entitySelected.group.id }}</nz-descriptions-item>
+          <nz-descriptions-item nzTitle="X">{{ positionOfSelected[entitySelected.id].x }}</nz-descriptions-item>
+          <nz-descriptions-item nzTitle="Y">{{ positionOfSelected[entitySelected.id].y }}</nz-descriptions-item>
+        </nz-descriptions>
+      }
+    </nz-sider>
+  </nz-layout>
+</nz-spin>

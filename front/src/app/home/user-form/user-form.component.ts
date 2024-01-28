@@ -29,13 +29,13 @@ import {Router} from "@angular/router";
   styleUrl: './user-form.component.scss'
 })
 export class UserFormComponent implements OnInit, OnDestroy {
-  private router = inject(Router);
-  private userService = inject(UserService);
-  private cookieStorageService = inject(CookieStorageService);
+  private readonly router = inject(Router);
+  private readonly userService = inject(UserService);
+  private readonly cookieStorageService = inject(CookieStorageService);
 
   private readonly subscription = new Subscription();
 
-  loading = true;
+  loading = false;
   form = new FormGroup({
     name: new FormControl('', [Validators.required, Validators.minLength(3)]),
     color: new FormControl(this.generateRandomColor(), [Validators.required]),
@@ -43,6 +43,8 @@ export class UserFormComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     if (this.cookieStorageService.token) {
+      this.loading = true;
+
       this.subscription.add(
           this.userService.me()
               .subscribe({
@@ -54,6 +56,7 @@ export class UserFormComponent implements OnInit, OnDestroy {
                     });
                   }
                 },
+                error: () => this.loading = false,
                 complete: () => this.loading = false
               })
       );
@@ -73,6 +76,7 @@ export class UserFormComponent implements OnInit, OnDestroy {
 
     this.userService.login(this.form.value.name!, this.form.value.color!).subscribe({
       next: _ => this.router.navigate(['/rooms']),
+      error: () => this.loading = false,
       complete: () => this.loading = false
     })
   }

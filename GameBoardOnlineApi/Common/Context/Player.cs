@@ -1,30 +1,15 @@
 using System.ComponentModel.DataAnnotations;
-using System.Diagnostics.CodeAnalysis;
 using Common.Models.Interfaces;
 
 namespace Common.Context;
 
-public abstract record Player : IEntity
+public record Player : IEntity
 {
-    public Guid Id { get; set; }
-
-    [MaxLength(128)] 
-    public required string Name { get; set; }
+    public long Id { get; set; }
 
     public virtual required User User { get; set; }
+    public long UserId { get; set; }
 
-    public virtual required Game Game { get; set; }
-    
-    protected Player()
-    {
-    }
-    
-    [SetsRequiredMembers]
-    protected Player(Game game, User user)
-    {
-        Game = game;
-        Name = user.Name;
-        
-        User = user;
-    }
+    public virtual required GamePlayed Game { get; set; }
+    public long GameId { get; set; }
 }

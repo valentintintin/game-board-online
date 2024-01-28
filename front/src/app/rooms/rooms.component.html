@@ -1,38 +1,40 @@
-<h2>Salons</h2>
+<nz-page-header nzTitle="Salon"></nz-page-header>
 
-<nz-spin [nzSpinning]="(rooms$ | async)?.loading">
-  <nz-table #table [nzData]="(rooms$ | async)?.data?.rooms ?? []">
-    <thead>
-    <tr>
-      <th>Date</th>
-      <th>Propriétaire</th>
-      <th>Joueurs</th>
-      <th>Jeu en cours</th>
-      <th>Action</th>
-    </tr>
-    </thead>
-    <tbody>
-      @for (data of table.data; track data.id) {
-        <tr>
-          <td>{{ data.createdAt | date:'short' }}</td>
-          <td>
-            @if (data.owner.id === (userService.userConnected$()?.id)) {
-              <i nz-icon nzType="user" nzTheme="outline" nz-tooltip="C'est toi"></i>
-            }
-            {{ data.owner.name }}
-          </td>
-          <td>{{ data.users.length }}</td>
-          <td>{{ data.currentGame?.name ?? 'Aucun' }}</td>
-          <td>
-            @if (data.currentGame) {
-              <a [routerLink]="['/room', data.id, 'game', data.currentGame.id]">Rejoindre</a>&nbsp;
-            }
-            @if (data.owner.id === (userService.userConnected$()?.id)) {
-              <a [routerLink]="['/room', data.id, 'init']">Configurer</a>
-            }
-          </td>
-        </tr>
-      }
-  </tbody>
-  </nz-table>
-</nz-spin>
+<div class="content">
+  <app-room-form></app-room-form>
+
+  <nz-divider></nz-divider>
+
+  <nz-spin [nzSpinning]="(rooms$ | async)?.loading">
+    <nz-table #table [nzData]="(rooms$ | async)?.data?.rooms ?? []">
+      <thead>
+      <tr>
+        <th>Date</th>
+        <th>Nom</th>
+        <th>Créateur</th>
+        <th>Action</th>
+      </tr>
+      </thead>
+      <tbody>
+        @for (data of table.data; track data.id) {
+          <tr>
+            <td>{{ data.createdAt | date:'short' }}</td>
+            <td>{{ data.name }}</td>
+            <td>
+              <span [style.color]="data.owner.color">
+                {{ data.owner.name }}
+              </span>
+            </td>
+            <td>
+              @if (data.userConnectedIsInside) {
+                <a nz-button nzType="primary" [routerLink]="['/room', data.id]">Entrer</a>
+              } @else {
+                <button nz-button nzType="primary" (click)="join(data.id)">Rejoindre</button>
+              }
+            </td>
+          </tr>
+        }
+    </tbody>
+    </nz-table>
+  </nz-spin>
+</div>

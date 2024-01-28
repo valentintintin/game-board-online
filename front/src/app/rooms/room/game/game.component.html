@@ -1,2 +1,52 @@
-<!--TODO switch case game-->
-<app-game-code-names></app-game-code-names>
+<nz-spin [nzSpinning]="loading">
+  <nz-page-header
+    (nzBack)="goBack()"
+    nzBackIcon
+    [nzTitle]="game$()?.game?.name"
+    [nzSubtitle]="'Salon ' + (game$()?.room?.name ?? '')"
+  >
+    <nz-page-header-extra>
+      <nz-space>
+        <button *nzSpaceItem nz-button nz-dropdown [nzDropdownMenu]="menuDelete" nzDanger>
+          Supprimer des groupes
+        </button>
+        <nz-dropdown-menu #menuDelete="nzDropdownMenu">
+          <ul nz-menu>
+            <li nz-menu-item>Option 2</li>
+          </ul>
+        </nz-dropdown-menu>
+      </nz-space>
+    </nz-page-header-extra>
+  </nz-page-header>
+
+  <div class="content">
+    <nz-segmented
+      [nzOptions]="options"
+      [(ngModel)]="optionSelected"
+    ></nz-segmented>
+
+    <div class="segmentedEntities" #playerHand></div>
+
+    <div id="main" class="entities" #main>
+      @for (entity of game$()?.entities ?? []; track entity!.id) {
+        @if (!entity?.container || entity?.container === 'main' || entity?.container === options[optionSelected].value) {
+          <div class="entity" cdkDrag [id]="'entity-' + entity!.id"
+               (cdkDragEnded)="move(entity, $event)"
+               [cdkDragFreeDragPosition]="{ x: entity!.x, y: entity!.y }"
+               [cdkDragDisabled]="false"
+               [style.z-index]="entity!.order"
+               [style.border-color]="entity!.owner?.user?.color ?? 'black'"
+               [style.transform]="'rotate(' + (entity!.rotation ?? 0) + 'deg)'">
+            <app-game-entity [entity]="entity"
+                             [players]="game$()?.players ?? []"
+                             (flip)="flip(entity!, $event.showBack, $event.onlyForOwner)"
+                             (rotate)="rotate(entity!, $event)"
+                             (give)="give(entity!, $event)"
+                             (delete)="delete(entity!)"
+            ></app-game-entity>
+          </div>
+        }
+      }
+    </div>
+  </div>
+</nz-spin>
