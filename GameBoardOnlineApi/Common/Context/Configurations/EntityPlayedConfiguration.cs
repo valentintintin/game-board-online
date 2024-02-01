@@ -20,6 +20,7 @@ public class EntityPlayedConfiguration : IEntityTypeConfiguration<EntityPlayed>
             .HasForeignKey(e => e.OwnerId);
         
         builder.HasOne(e => e.LastActorTouched)
-            .WithMany();
+            .WithMany()
+            .HasForeignKey(e => e.LastActorTouchedId);
     }
 }

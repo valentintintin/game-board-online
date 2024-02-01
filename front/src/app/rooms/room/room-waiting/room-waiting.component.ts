@@ -46,13 +46,19 @@ export class RoomWaitingComponent implements OnInit, OnDestroy {
       room(roomId: $roomId) {
         id
         name
-        userConnectedIsOwner
-        users {
+        users(order: {
+          name: ASC
+        }) {
           id
           name
           color
         }
-        games {
+        games(order: {
+          createdAt: DESC,
+          game: {
+            name: ASC
+          }
+        }) {
           id
           createdAt
           isFinished
@@ -73,7 +79,9 @@ export class RoomWaitingComponent implements OnInit, OnDestroy {
 
   private gamesQuery = gql`
     query getGames {
-      games {
+      games(order: {
+        name: ASC
+      }) {
         id
         name
         image

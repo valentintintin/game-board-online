@@ -13,6 +13,7 @@ public record Entity : IEntity
     public required string Name { get; set; }
 
     public virtual required EntityGroup Group { get; set; }
+    public long GroupId { get; set; }
     
     public int Order { get; set; }
     public int X { get; set; }

@@ -1,14 +1,14 @@
 import {Component, ElementRef, inject, OnDestroy, OnInit, signal, ViewChild} from '@angular/core';
 import {gql} from "apollo-angular";
 import {
-  DeleteEntityGQL,
+  DeleteEntityGQL, DeleteNotTouchedInGroupGQL,
   EntityPlayed,
   FlipEntityGQL,
   GameActionGQL,
   GamePlayed,
   GetGamePlayedGQL,
   GiveEntityGQL,
-  MoveEntityGQL,
+  MoveEntityGQL, RandomizeEntitiesGQL,
   RotateEntityGQL
 } from "../../../../services/api/generated.service";
 import {ActivatedRoute, Router} from "@angular/router";
@@ -25,6 +25,7 @@ import {UserService} from "../../../../services/api/user.service";
 import {NzSpaceModule} from "ng-zorro-antd/space";
 import {NzButtonModule} from "ng-zorro-antd/button";
 import {NzDropDownModule} from "ng-zorro-antd/dropdown";
+import {NzEmptyComponent} from "ng-zorro-antd/empty";
 
 @Component({
   selector: 'app-game',
@@ -42,6 +43,7 @@ import {NzDropDownModule} from "ng-zorro-antd/dropdown";
     NzSpaceModule,
     NzButtonModule,
     NzDropDownModule,
+    NzEmptyComponent,
   ],
   templateUrl: './game.component.html',
   styleUrl: './game.component.scss'
@@ -55,6 +57,8 @@ export class GameComponent implements OnInit, OnDestroy {
   private readonly rotateGQL = inject(RotateEntityGQL);
   private readonly deleteGQL = inject(DeleteEntityGQL);
   private readonly giveGQL = inject(GiveEntityGQL);
+  private readonly deleteNotTouchedInGroupGQL = inject(DeleteNotTouchedInGroupGQL);
+  private readonly randomizeEntitiesGQL = inject(RandomizeEntitiesGQL);
 
   private query = gql`
     query getGamePlayed($gamePlayedId: Long!) {
@@ -118,29 +122,30 @@ export class GameComponent implements OnInit, OnDestroy {
   private querySubscription = gql`
     subscription gameAction {
       gameAction {
+        id
+        name
+        canFlip
+        canMove
+        canRotate
+        canBeDeleted
+        isMine
+        x
+        y
+        rotation
+        container
+        showBack
+        deleted
+        order
+        onlyForOwner
+        owner {
           id
-          name
-          canFlip
-          canMove
-          canRotate
-          canBeDeleted
-          isMine
-          x
-          y
-          rotation
-          container
-          showBack
-          deleted
-          onlyForOwner
-          owner {
+          user {
             id
-            user {
-              id
-              name
-              color
-            }
+            name
+            color
           }
         }
+      }
     }
   `;
 
@@ -406,5 +411,61 @@ export class GameComponent implements OnInit, OnDestroy {
 
   goBack() {
     void this.router.navigate(['/room', this.route.parent?.snapshot.paramMap.get('roomId')]);
+  }
+
+  deleteNotTouchedInGroup(id: number) {
+    gql`
+      mutation deleteNotTouchedInGroup($gamePlayedId: Long!, $entityGroupId: Long!) {
+        deleteEntitiesNotTouched(gamePlayedId: $gamePlayedId, entityGroupId: $entityGroupId) {
+          id
+          deleted
+        }
+      }
+    `;
+
+    this.subscriptions.add(
+      this.deleteNotTouchedInGroupGQL.mutate({
+        gamePlayedId: this.game$()?.id,
+        entityGroupId: id
+      }).subscribe(() => {
+        this.messageService.success(`Elements supprimés`)
+      })
+    );
+  }
+
+  randomizeGroup(id: number, onlyTouched: boolean, restoreDeleted: boolean) {
+    gql`
+      mutation randomizeEntities($gamePlayedId: Long!, $entityGroupId: Long!, $onlyTouched: Boolean!, $restoreDeleted: Boolean!) {
+        randomizeEntities(gamePlayedId: $gamePlayedId, entityGroupId: $entityGroupId, onlyTouched: $onlyTouched, restoreDeleted: $restoreDeleted) {
+          id
+          x
+          y
+          container
+          order
+          rotation
+          showBack
+          canFlip
+          onlyForOwner
+          deleted
+          owner {
+            id
+            user {
+              id
+            }
+          }
+        }
+      }
+    `;
+
+    this.subscriptions.add(
+      this.randomizeEntitiesGQL.mutate({
+        gamePlayedId: this.game$()?.id,
+        entityGroupId: id,
+        onlyTouched,
+        restoreDeleted
+      }).subscribe(() => {
+        this.messageService.success(`Elements mélangés`)
+      })
+    );
   }
 }

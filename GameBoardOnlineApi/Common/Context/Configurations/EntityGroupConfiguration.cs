@@ -14,5 +14,8 @@ public class EntityGroupConfiguration : IEntityTypeConfiguration<EntityGroup>
         builder.HasOne(eg => eg.Game)
             .WithMany(g => g.EntitiesGroups)
             .HasForeignKey(eg => eg.GameId);
+
+        builder.Property(g => g.Randomize)
+            .EnumToStringNotRequired();
     }
 }

@@ -54,6 +54,7 @@ export type Entity = {
   canMove: Scalars['Boolean']['output'];
   canRotate: Scalars['Boolean']['output'];
   group: EntityGroup;
+  groupId: Scalars['Long']['output'];
   height: Scalars['Int']['output'];
   id: Scalars['Long']['output'];
   image?: Maybe<Scalars['String']['output']>;
@@ -86,7 +87,7 @@ export type EntityGroup = {
   id: Scalars['Long']['output'];
   imageBack?: Maybe<Scalars['String']['output']>;
   name: Scalars['String']['output'];
-  randomize: Scalars['Boolean']['output'];
+  randomize?: Maybe<RandomizeType>;
 };
 
 export type EntityPlayed = {
@@ -108,6 +109,7 @@ export type EntityPlayed = {
   imageBack?: Maybe<Scalars['String']['output']>;
   isMine: Scalars['Boolean']['output'];
   lastActorTouched?: Maybe<Player>;
+  lastActorTouchedId?: Maybe<Scalars['Long']['output']>;
   name?: Maybe<Scalars['String']['output']>;
   onlyForOwner: Scalars['Boolean']['output'];
   order: Scalars['Int']['output'];
@@ -174,6 +176,7 @@ export type Mutation = {
   __typename?: 'Mutation';
   createRoom?: Maybe<Room>;
   deleteEntitiesNotTouched: Array<EntityPlayed>;
+  endGame?: Maybe<GamePlayed>;
   gameDeleteEntity: EntityPlayed;
   gameFlipEntity: EntityPlayed;
   gameGiveEntity: EntityPlayed;
@@ -183,6 +186,7 @@ export type Mutation = {
   joinRoom?: Maybe<Room>;
   leaveRoom?: Maybe<Room>;
   login?: Maybe<User>;
+  randomizeEntities: Array<EntityPlayed>;
   sendChatMessage?: Maybe<ChatMessage>;
   setCurrentGame?: Maybe<Room>;
   updateEntity: Array<Entity>;
@@ -195,6 +199,12 @@ export type MutationCreateRoomArgs = {
 
 
 export type MutationDeleteEntitiesNotTouchedArgs = {
+  entityGroupId: Scalars['Long']['input'];
+  gamePlayedId: Scalars['Long']['input'];
+};
+
+
+export type MutationEndGameArgs = {
   gamePlayedId: Scalars['Long']['input'];
 };
 
@@ -255,6 +265,14 @@ export type MutationLoginArgs = {
 };
 
 
+export type MutationRandomizeEntitiesArgs = {
+  entityGroupId: Scalars['Long']['input'];
+  gamePlayedId: Scalars['Long']['input'];
+  onlyTouched: Scalars['Boolean']['input'];
+  restoreDeleted: Scalars['Boolean']['input'];
+};
+
+
 export type MutationSendChatMessageArgs = {
   message: Scalars['String']['input'];
   roomId: Scalars['Long']['input'];
@@ -302,9 +320,26 @@ export type QueryGamePlayedArgs = {
 };
 
 
+export type QueryGamesArgs = {
+  order?: InputMaybe<Array<GameSortInput>>;
+};
+
+
 export type QueryRoomArgs = {
   roomId: Scalars['Long']['input'];
 };
+
+
+export type QueryRoomsArgs = {
+  order?: InputMaybe<Array<RoomSortInput>>;
+};
+
+export enum RandomizeType {
+  InPlace = 'IN_PLACE',
+  InPlaceForPlayers = 'IN_PLACE_FOR_PLAYERS',
+  Simple = 'SIMPLE',
+  SimpleForPlayers = 'SIMPLE_FOR_PLAYERS'
+}
 
 export type Room = {
   __typename?: 'Room';
@@ -325,6 +360,16 @@ export type Room = {
 
 export type RoomChatMessagesArgs = {
   order?: InputMaybe<Array<ChatMessageSortInput>>;
+};
+
+
+export type RoomGamesArgs = {
+  order?: InputMaybe<Array<GamePlayedSortInput>>;
+};
+
+
+export type RoomUsersArgs = {
+  order?: InputMaybe<Array<UserSortInput>>;
 };
 
 export type RoomSortInput = {
@@ -402,12 +447,12 @@ export type GetGamePlayedQueryVariables = Exact<{
 }>;
 
 
-export type GetGamePlayedQuery = { __typename?: 'Query', gamePlayed?: { __typename?: 'GamePlayed', id: any, players: Array<{ __typename?: 'Player', id: any, user: { __typename?: 'User', id: any, name: string, color: string } }>, game: { __typename?: 'Game', id: any, name: string }, room: { __typename?: 'Room', id: any, name: string }, entitiesGroups?: Array<{ __typename?: 'EntityGroup', id: any, name: string, randomize: boolean, canRemoveNotUsed?: boolean | null } | null> | null, entities?: Array<{ __typename?: 'EntityPlayed', id: any, image?: string | null, imageBack?: string | null, width: number, height: number, order: number, name?: string | null, canFlip: EntityFlippableState, canMove: boolean, canRotate: boolean, canBeDeleted: boolean, isMine: boolean, x: number, y: number, rotation: number, container?: string | null, showBack: boolean, deleted: boolean, onlyForOwner: boolean, owner?: { __typename?: 'Player', id: any, user: { __typename?: 'User', id: any, name: string, color: string } } | null } | null> | null } | null };
+export type GetGamePlayedQuery = { __typename?: 'Query', gamePlayed?: { __typename?: 'GamePlayed', id: any, players: Array<{ __typename?: 'Player', id: any, user: { __typename?: 'User', id: any, name: string, color: string } }>, game: { __typename?: 'Game', id: any, name: string }, room: { __typename?: 'Room', id: any, name: string }, entitiesGroups?: Array<{ __typename?: 'EntityGroup', id: any, name: string, randomize?: RandomizeType | null, canRemoveNotUsed?: boolean | null } | null> | null, entities?: Array<{ __typename?: 'EntityPlayed', id: any, image?: string | null, imageBack?: string | null, width: number, height: number, order: number, name?: string | null, canFlip: EntityFlippableState, canMove: boolean, canRotate: boolean, canBeDeleted: boolean, isMine: boolean, x: number, y: number, rotation: number, container?: string | null, showBack: boolean, deleted: boolean, onlyForOwner: boolean, owner?: { __typename?: 'Player', id: any, user: { __typename?: 'User', id: any, name: string, color: string } } | null } | null> | null } | null };
 
 export type GameActionSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GameActionSubscription = { __typename?: 'Subscription', gameAction?: { __typename?: 'EntityPlayed', id: any, name?: string | null, canFlip: EntityFlippableState, canMove: boolean, canRotate: boolean, canBeDeleted: boolean, isMine: boolean, x: number, y: number, rotation: number, container?: string | null, showBack: boolean, deleted: boolean, onlyForOwner: boolean, owner?: { __typename?: 'Player', id: any, user: { __typename?: 'User', id: any, name: string, color: string } } | null } | null };
+export type GameActionSubscription = { __typename?: 'Subscription', gameAction?: { __typename?: 'EntityPlayed', id: any, name?: string | null, canFlip: EntityFlippableState, canMove: boolean, canRotate: boolean, canBeDeleted: boolean, isMine: boolean, x: number, y: number, rotation: number, container?: string | null, showBack: boolean, deleted: boolean, order: number, onlyForOwner: boolean, owner?: { __typename?: 'Player', id: any, user: { __typename?: 'User', id: any, name: string, color: string } } | null } | null };
 
 export type MoveEntityMutationVariables = Exact<{
   entityPlayedId: Scalars['Long']['input'];
@@ -452,12 +497,30 @@ export type GiveEntityMutationVariables = Exact<{
 
 export type GiveEntityMutation = { __typename?: 'Mutation', gameGiveEntity: { __typename?: 'EntityPlayed', id: any, isMine: boolean, owner?: { __typename?: 'Player', id: any, user: { __typename?: 'User', id: any } } | null } };
 
+export type DeleteNotTouchedInGroupMutationVariables = Exact<{
+  gamePlayedId: Scalars['Long']['input'];
+  entityGroupId: Scalars['Long']['input'];
+}>;
+
+
+export type DeleteNotTouchedInGroupMutation = { __typename?: 'Mutation', deleteEntitiesNotTouched: Array<{ __typename?: 'EntityPlayed', id: any, deleted: boolean }> };
+
+export type RandomizeEntitiesMutationVariables = Exact<{
+  gamePlayedId: Scalars['Long']['input'];
+  entityGroupId: Scalars['Long']['input'];
+  onlyTouched: Scalars['Boolean']['input'];
+  restoreDeleted: Scalars['Boolean']['input'];
+}>;
+
+
+export type RandomizeEntitiesMutation = { __typename?: 'Mutation', randomizeEntities: Array<{ __typename?: 'EntityPlayed', id: any, x: number, y: number, container?: string | null, order: number, rotation: number, showBack: boolean, canFlip: EntityFlippableState, onlyForOwner: boolean, deleted: boolean, owner?: { __typename?: 'Player', id: any, user: { __typename?: 'User', id: any } } | null }> };
+
 export type GetRoomQueryVariables = Exact<{
   roomId: Scalars['Long']['input'];
 }>;
 
 
-export type GetRoomQuery = { __typename?: 'Query', room?: { __typename?: 'Room', id: any, name: string, userConnectedIsOwner: boolean, users: Array<{ __typename?: 'User', id: any, name: string, color: string }>, games: Array<{ __typename?: 'GamePlayed', id: any, createdAt: any, isFinished: boolean }>, currentGame?: { __typename?: 'GamePlayed', id: any, createdAt: any, isFinished: boolean, game: { __typename?: 'Game', id: any, name: string, image?: string | null } } | null } | null };
+export type GetRoomQuery = { __typename?: 'Query', room?: { __typename?: 'Room', id: any, name: string, users: Array<{ __typename?: 'User', id: any, name: string, color: string }>, games: Array<{ __typename?: 'GamePlayed', id: any, createdAt: any, isFinished: boolean }>, currentGame?: { __typename?: 'GamePlayed', id: any, createdAt: any, isFinished: boolean, game: { __typename?: 'Game', id: any, name: string, image?: string | null } } | null } | null };
 
 export type GetGamesQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -717,6 +780,7 @@ export const GameActionDocument = gql`
     container
     showBack
     deleted
+    order
     onlyForOwner
     owner {
       id
@@ -888,18 +952,77 @@ export const GiveEntityDocument = gql`
       super(apollo);
     }
   }
+export const DeleteNotTouchedInGroupDocument = gql`
+    mutation deleteNotTouchedInGroup($gamePlayedId: Long!, $entityGroupId: Long!) {
+  deleteEntitiesNotTouched(
+    gamePlayedId: $gamePlayedId
+    entityGroupId: $entityGroupId
+  ) {
+    id
+    deleted
+  }
+}
+    `;
+
+  @Injectable({
+    providedIn: 'root'
+  })
+  export class DeleteNotTouchedInGroupGQL extends Apollo.Mutation<DeleteNotTouchedInGroupMutation, DeleteNotTouchedInGroupMutationVariables> {
+    override document = DeleteNotTouchedInGroupDocument;
+    
+    constructor(apollo: Apollo.Apollo) {
+      super(apollo);
+    }
+  }
+export const RandomizeEntitiesDocument = gql`
+    mutation randomizeEntities($gamePlayedId: Long!, $entityGroupId: Long!, $onlyTouched: Boolean!, $restoreDeleted: Boolean!) {
+  randomizeEntities(
+    gamePlayedId: $gamePlayedId
+    entityGroupId: $entityGroupId
+    onlyTouched: $onlyTouched
+    restoreDeleted: $restoreDeleted
+  ) {
+    id
+    x
+    y
+    container
+    order
+    rotation
+    showBack
+    canFlip
+    onlyForOwner
+    deleted
+    owner {
+      id
+      user {
+        id
+      }
+    }
+  }
+}
+    `;
+
+  @Injectable({
+    providedIn: 'root'
+  })
+  export class RandomizeEntitiesGQL extends Apollo.Mutation<RandomizeEntitiesMutation, RandomizeEntitiesMutationVariables> {
+    override document = RandomizeEntitiesDocument;
+    
+    constructor(apollo: Apollo.Apollo) {
+      super(apollo);
+    }
+  }
 export const GetRoomDocument = gql`
     query getRoom($roomId: Long!) {
   room(roomId: $roomId) {
     id
     name
-    userConnectedIsOwner
-    users {
+    users(order: {name: ASC}) {
       id
       name
       color
     }
-    games {
+    games(order: {createdAt: DESC, game: {name: ASC}}) {
       id
       createdAt
       isFinished
@@ -930,7 +1053,7 @@ export const GetRoomDocument = gql`
   }
 export const GetGamesDocument = gql`
     query getGames {
-  games {
+  games(order: {name: ASC}) {
     id
     name
     image

@@ -22,6 +22,7 @@ type Entity {
   canMove: Boolean!
   canRotate: Boolean!
   group: EntityGroup!
+  groupId: Long!
   height: Int!
   id: Long!
   image: String
@@ -101,7 +102,8 @@ type GamePlayed {
 
 type Mutation {
   createRoom(name: String!): Room
-  deleteEntitiesNotTouched(gamePlayedId: Long!): [EntityPlayed!]!
+  deleteEntitiesNotTouched(entityGroupId: Long!, gamePlayedId: Long!): [EntityPlayed!]!
+  endGame(gamePlayedId: Long!): GamePlayed
   gameDeleteEntity(entityPlayedId: Long!): EntityPlayed!
   gameFlipEntity(entityPlayedId: Long!, onlyForOwner: Boolean, showBack: Boolean!): EntityPlayed!
   gameGiveEntity(container: String, entityPlayedId: Long!, newPlayerId: Long!): EntityPlayed!
@@ -111,6 +113,7 @@ type Mutation {
   joinRoom(roomId: Long!): Room
   leaveRoom(roomId: Long!, userId: Long!): Room
   login(color: String!, name: String!): User
+  randomizeEntities(entityGroupId: Long!, gamePlayedId: Long!, onlyTouched: Boolean!, restoreDeleted: Boolean!): [EntityPlayed!]!
   sendChatMessage(message: String!, roomId: Long!): ChatMessage
   setCurrentGame(gamePlayedId: Long!, roomId: Long!): Room
   updateEntity(dto: EntityUpdateDtoInput!, entityId: Long!): [Entity!]!
@@ -127,10 +130,10 @@ type Player {
 type Query {
   game(gameId: Long!): Game
   gamePlayed(gamePlayedId: Long!): GamePlayed
-  games: [Game!]!
+  games(order: [GameSortInput!]): [Game!]!
   me: User
   room(roomId: Long!): Room
-  rooms: [Room!]!
+  rooms(order: [RoomSortInput!]): [Room!]!
 }
 
 type Room {
@@ -138,14 +141,14 @@ type Room {
   createdAt: DateTime!
   currentGame: GamePlayed
   currentGameId: Long
-  games: [GamePlayed!]!
+  games(order: [GamePlayedSortInput!]): [GamePlayed!]!
   id: Long!
   name: String!
   owner: User!
   ownerId: Long!
   userConnectedIsInside: Boolean!
   userConnectedIsOwner: Boolean!
-  users: [User!]!
+  users(order: [UserSortInput!]): [User!]!
 }
 
 type Subscription {

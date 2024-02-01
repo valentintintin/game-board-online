@@ -17,5 +17,6 @@ public enum GameAction
     Delete,
     Flip,
     Rotate,
-    Give
+    Give,
+    Randomize
 }

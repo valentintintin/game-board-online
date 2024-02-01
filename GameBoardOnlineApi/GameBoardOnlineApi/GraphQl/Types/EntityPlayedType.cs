@@ -54,15 +54,6 @@ public class EntityPlayedType : ObjectTypeExtension<EntityPlayed>
             });
         
         descriptor
-            .Field("order")
-            .UseDbContext<DataContext>()
-            .Resolve(context =>
-            {
-                var entity = context.Parent<EntityPlayed>();
-                return entity.Entity.Order;
-            });
-        
-        descriptor
             .Field("isMine")
             .Resolve(context =>
             {

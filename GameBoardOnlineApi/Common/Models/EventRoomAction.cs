@@ -18,5 +18,5 @@ public enum RoomAction
     Join,
     Leave,
     NewGame,
-    Change
+    EndGame
 }

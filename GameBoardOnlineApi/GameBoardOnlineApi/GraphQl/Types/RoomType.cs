@@ -15,6 +15,14 @@ public class RoomType : ObjectType<Room>
         descriptor
             .Field(w => w.ChatMessages)
             .UseSorting();
+        
+        descriptor
+            .Field(w => w.Games)
+            .UseSorting();
+        
+        descriptor
+            .Field(w => w.Users)
+            .UseSorting();
 
         descriptor
             .Field("userConnectedIsOwner")

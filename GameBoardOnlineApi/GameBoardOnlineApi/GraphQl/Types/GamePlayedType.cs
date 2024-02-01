@@ -12,7 +12,7 @@ public class GamePlayedType : ObjectType<GamePlayed>
     {
         base.Configure(descriptor);
 
-        descriptor.Field(e => e.GameId);
+        descriptor.Field(e => e.GameId).IsProjected();
 
         descriptor.Field(e => e.Entities)
             .UseDbContext<DataContext>()
@@ -21,7 +21,8 @@ public class GamePlayedType : ObjectType<GamePlayed>
                 return context.DbContext<DataContext>().EntityPlayed
                     .WithNavigationsIncluded()
                     .Where(e => e.GamePlayedId == context.Parent<GamePlayed>().Id)
-                    .OrderBy(e => e.Id)
+                    .OrderBy(e => e.Entity.Order)
+                    .ThenBy(e => e.Id)
                     .ToList();
             });
 
@@ -31,7 +32,8 @@ public class GamePlayedType : ObjectType<GamePlayed>
             {
                 return context.DbContext<DataContext>().EntitiesGroups
                     .Where(e => e.GameId == context.Parent<GamePlayed>().GameId)
-                    .OrderBy(e => e.Id)
+                    .OrderBy(e => e.Name)
+                    .ThenBy(e => e.Id)
                     .ToList();
             });
     }

@@ -20,6 +20,7 @@ public class Query
     
     [Authorize]
     [UseProjection]
+    [UseSorting]
     public IQueryable<Room> GetRooms(DataContext context)
     {
         return context.Rooms;
@@ -35,6 +36,7 @@ public class Query
 
     [Authorize]
     [UseProjection]
+    [UseSorting]
     public IQueryable<Game> Games(DataContext context)
     {
         return context.Games;

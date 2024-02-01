@@ -7,14 +7,44 @@
   >
     <nz-page-header-extra>
       <nz-space>
-        <button *nzSpaceItem nz-button nz-dropdown [nzDropdownMenu]="menuDelete" nzDanger>
-          Supprimer des groupes
+        <button *nzSpaceItem nz-button nz-dropdown [nzDropdownMenu]="menuDelete">
+          Supprimer les inutilisés d'un groupe
         </button>
         <nz-dropdown-menu #menuDelete="nzDropdownMenu">
           <ul nz-menu>
-            <li nz-menu-item>Option 2</li>
+            @for (group of (game$()?.entitiesGroups ?? []); track group?.id)
+            {
+              @if (group?.canRemoveNotUsed)
+              {
+                <li nz-menu-item (click)="deleteNotTouchedInGroup(group?.id)">{{ group?.name }}</li>
+              }
+            }
+            @empty
+            {
+              <nz-empty></nz-empty>
+            }
           </ul>
         </nz-dropdown-menu>
+
+        <button *nzSpaceItem nz-button nz-dropdown [nzDropdownMenu]="menuRandomize">
+          Mélanger un groupe
+        </button>
+        <nz-dropdown-menu #menuRandomize="nzDropdownMenu">
+          <ul nz-menu>
+            @for (group of (game$()?.entitiesGroups ?? []); track group?.id)
+            {
+              @if (group?.randomize)
+              {
+                <li nz-menu-item (click)="randomizeGroup(group?.id, false, true)">{{ group?.name }}</li>
+              }
+            }
+            @empty
+            {
+              <nz-empty></nz-empty>
+            }
+          </ul>
+        </nz-dropdown-menu>
+        <button *nzSpaceItem nz-button nzDanger>Terminer la partie</button>
       </nz-space>
     </nz-page-header-extra>
   </nz-page-header>
@@ -29,7 +59,7 @@
 
     <div id="main" class="entities" #main>
       @for (entity of game$()?.entities ?? []; track entity!.id) {
-        @if (!entity?.container || entity?.container === 'main' || entity?.container === options[optionSelected].value) {
+        @if (!entity?.deleted && (!entity?.container || entity?.container === 'main' || entity?.container === options[optionSelected].value)) {
           <div class="entity" cdkDrag [id]="'entity-' + entity!.id"
                (cdkDragEnded)="move(entity, $event)"
                [cdkDragFreeDragPosition]="{ x: entity!.x, y: entity!.y }"

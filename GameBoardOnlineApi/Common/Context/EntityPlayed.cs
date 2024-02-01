@@ -17,10 +17,12 @@ public record EntityPlayed : IEntity, ICreated
     public long? OwnerId { get; set; }
     
     public virtual Player? LastActorTouched { get; set; }
+    public long? LastActorTouchedId { get; set; }
     
     public int X { get; set; }
     public int Y { get; set; }
     public int Rotation { get; set; }
+    public int Order { get; set; }
     public bool ShowBack { get; set; }
     public bool Deleted { get; set; }
     public bool OnlyForOwner { get; set; }

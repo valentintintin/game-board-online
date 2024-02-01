@@ -114,6 +114,32 @@ public class Mutation
     [Authorize]
     [UseFirstOrDefault]
     [UseProjection]
+    public async Task<IQueryable<GamePlayed>> EndGame(long gamePlayedId, DataContext context, 
+        [Service] GameService gameService, ClaimsPrincipal claimsPrincipal, [Service] SecurityService securityService,
+        [Service] ITopicEventSender sender)
+    {
+        var userId = claimsPrincipal.GetUserId();
+
+        if (!securityService.IsGamePlayedAllowed(gamePlayedId, userId))
+        {
+            throw new UnauthorizedException("Vous n'êtes pas dans le jeu");
+        }
+        
+        var gamePlayed = gameService.EndGame(gamePlayedId);
+        
+        await sender.SendAsync(nameof(Subscription.RoomAction), new EventRoomAction
+        {
+            Action = RoomAction.EndGame,
+            Room = context.Rooms.FindOrThrow(gamePlayed.RoomId),
+            User = context.Users.FindOrThrow(userId)
+        });
+
+        return context.GamePlayed.FindByIdAsQueryable(gamePlayed.Id);
+    }
+    
+    [Authorize]
+    [UseFirstOrDefault]
+    [UseProjection]
     public async Task<IQueryable<Room>> SetCurrentGame(long roomId, long gamePlayedId, DataContext context, 
         [Service] RoomService roomService, [Service] SecurityService securityService, ClaimsPrincipal claimsPrincipal,
         [Service] ITopicEventSender sender)
@@ -157,9 +183,9 @@ public class Mutation
     }
     
     [Authorize]
-    public async Task<List<EntityPlayed>> DeleteEntitiesNotTouched(long gamePlayedId, ClaimsPrincipal claimsPrincipal,
-        [Service] GameService gameService, [Service] ITopicEventSender sender, DataContext context,
-        [Service] SecurityService securityService)
+    public async Task<List<EntityPlayed>> DeleteEntitiesNotTouched(long gamePlayedId, long entityGroupId, 
+        ClaimsPrincipal claimsPrincipal, [Service] GameService gameService, [Service] ITopicEventSender sender, 
+        DataContext context, [Service] SecurityService securityService)
     {
         var userId = claimsPrincipal.GetUserId();
 
@@ -169,13 +195,42 @@ public class Mutation
         }
         
         var player = context.GamePlayed.FindOrThrow(gamePlayedId).Players.First(p => p.User.Id == claimsPrincipal.GetUserId());
-        var entitiesPlayed = gameService.DeleteEntitiesNotTouched(gamePlayedId);
+        var entitiesPlayed = gameService.DeleteEntitiesNotTouched(gamePlayedId, entityGroupId);
 
         foreach (var entityPlayed in entitiesPlayed)
         {
             await sender.SendAsync(nameof(Subscription.GameAction), new EventGameAction
             {
                 Action = GameAction.Delete,
+                Player = player,
+                Entity = entityPlayed
+            });
+        }
+
+        return entitiesPlayed;
+    }
+    
+    [Authorize]
+    public async Task<List<EntityPlayed>> RandomizeEntities(long gamePlayedId, long entityGroupId,
+        bool restoreDeleted, bool onlyTouched, 
+        ClaimsPrincipal claimsPrincipal, [Service] GameService gameService, [Service] ITopicEventSender sender,
+        DataContext context, [Service] SecurityService securityService)
+    {
+        var userId = claimsPrincipal.GetUserId();
+
+        if (!securityService.IsGamePlayedAllowed(gamePlayedId, userId))
+        {
+            throw new UnauthorizedException("Vous n'êtes pas dans le jeu");
+        }
+        
+        var player = context.GamePlayed.FindOrThrow(gamePlayedId).Players.First(p => p.User.Id == claimsPrincipal.GetUserId());
+        var entitiesPlayed = gameService.RandomizeEntities(gamePlayedId, entityGroupId, restoreDeleted, onlyTouched);
+
+        foreach (var entityPlayed in entitiesPlayed)
+        {
+            await sender.SendAsync(nameof(Subscription.GameAction), new EventGameAction
+            {
+                Action = GameAction.Randomize,
                 Player = player,
                 Entity = entityPlayed
             });
