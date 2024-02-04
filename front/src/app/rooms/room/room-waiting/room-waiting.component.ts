@@ -62,6 +62,9 @@ export class RoomWaitingComponent implements OnInit, OnDestroy {
           id
           createdAt
           isFinished
+          game {
+            id
+          }
         }
         currentGame {
           id
@@ -145,7 +148,7 @@ export class RoomWaitingComponent implements OnInit, OnDestroy {
         roomId: parseInt(this.route.snapshot.parent?.paramMap.get('roomId') ?? '', 10),
         gameId: gameId
       }, {
-        refetchQueries: ['getMessages']
+        refetchQueries: ['getMessages', 'getRoom']
       }).subscribe({
         next: result => this.router.navigate(['game', result.data?.initializeGame?.id], {
           relativeTo: this.route

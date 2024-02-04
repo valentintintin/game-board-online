@@ -4,7 +4,7 @@
   [ngSrc]="entity.showBack ? entity?.imageBack : entity?.image"
   (dblclick)="dblclick()"
   [alt]="entity?.name"
-  [nz-tooltip]="entity?.name"
+  [nz-tooltip]="entity?.name + ' #' + entity?.id"
   [priority]="true"
   [style.transform]="'rotate(' + entity.rotation + 'deg)'"
 />

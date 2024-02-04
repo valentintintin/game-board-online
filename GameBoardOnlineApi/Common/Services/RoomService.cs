@@ -69,17 +69,18 @@ public class RoomService(ILogger<RoomService> logger, IDbContextFactory<DataCont
         return room;
     }
 
-    public Room SetCurrentGame(long roomId, long gamePlayedId)
+    public Room SetCurrentGame(long gamePlayedId)
     {
-        var room = Context.Rooms.FindOrThrow(roomId);
-        var gamePlayed = Context.GamePlayed.FindOrThrow(gamePlayedId);
+        var gamePlayed = Context.GamePlayed
+            .Include(g => g.Room)
+            .FindOrThrow(gamePlayedId);
 
-        room.CurrentGame = gamePlayed;
+        gamePlayed.Room.CurrentGame = gamePlayed;
 
-        Context.Update(room);
+        Context.Update(gamePlayed.Room);
         Context.SaveChanges();
         
-        return room;
+        return gamePlayed.Room;
     }
 
     public ChatMessage SendChatMessage(long roomId, string message, long? userId = null)

@@ -37,4 +37,10 @@ public record Entity : IEntity
     
     [MaxLength(256)]
     public string? ImageBack { get; set; }
+    
+    public virtual Entity? LinkTo { get; set; }
+    public long? LinkToId { get; set; }
+    public bool MoveWithLink { get; set; }
+    public bool DeleteWithLink { get; set; }
+    public virtual ICollection<Entity> EntitiesLinked { get; set; } = [];
 }

@@ -3,6 +3,7 @@ using System;
 using Common.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Common.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20240204110330_EntityLinked")]
+    partial class EntityLinked
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -204,9 +207,6 @@ namespace Common.Migrations
                     b.Property<long?>("LastActorTouchedId")
                         .HasColumnType("bigint");
 
-                    b.Property<long?>("LinkToId")
-                        .HasColumnType("bigint");
-
                     b.Property<bool>("OnlyForOwner")
                         .HasColumnType("boolean");
 
@@ -235,8 +235,6 @@ namespace Common.Migrations
                     b.HasIndex("GamePlayedId");
 
                     b.HasIndex("LastActorTouchedId");
-
-                    b.HasIndex("LinkToId");
 
                     b.HasIndex("OwnerId");
 
@@ -462,10 +460,6 @@ namespace Common.Migrations
                         .WithMany()
                         .HasForeignKey("LastActorTouchedId");
 
-                    b.HasOne("Common.Context.EntityPlayed", "LinkTo")
-                        .WithMany("EntitiesLinked")
-                        .HasForeignKey("LinkToId");
-
                     b.HasOne("Common.Context.Player", "Owner")
                         .WithMany()
                         .HasForeignKey("OwnerId");
@@ -475,8 +469,6 @@ namespace Common.Migrations
                     b.Navigation("GamePlayed");
 
                     b.Navigation("LastActorTouched");
-
-                    b.Navigation("LinkTo");
 
                     b.Navigation("Owner");
                 });
@@ -560,11 +552,6 @@ namespace Common.Migrations
             modelBuilder.Entity("Common.Context.EntityGroup", b =>
                 {
                     b.Navigation("Entities");
-                });
-
-            modelBuilder.Entity("Common.Context.EntityPlayed", b =>
-                {
-                    b.Navigation("EntitiesLinked");
                 });
 
             modelBuilder.Entity("Common.Context.Game", b =>

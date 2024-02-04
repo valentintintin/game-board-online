@@ -1,7 +1,9 @@
 @if (game)
 {
   <nz-card nz-col style="width:350px;" [nzTitle]="game.name" [nzExtra]="extraTemplate">
-    <img [ngSrc]="game?.image ?? ''" [width]="250" [height]="250" [alt]="'Boîte de ' + game.name" />
+    <div class="card-container">
+      <img [ngSrc]="game?.image ?? ''" [width]="250" [height]="250" [alt]="'Boîte de ' + game.name" />
+    </div>
   </nz-card>
   <ng-template #extraTemplate>
     <nz-button-group>
@@ -24,7 +26,10 @@
           <ul nz-menu>
             @for (gamePlayed of gamesPlayed; track gamePlayed.id)
             {
-              <li nz-menu-item [routerLink]="['game', gamePlayed.id]">{{ gamePlayed.createdAt | date }} - {{ gamePlayed.isFinished ? 'Terminé' : 'En cours' }}</li>
+              @if (gamePlayed.game.id === game.id)
+              {
+                <li nz-menu-item [routerLink]="['game', gamePlayed.id]">{{ gamePlayed.createdAt | date }} - {{ gamePlayed.isFinished ? 'Terminé' : 'En cours' }}</li>
+              }
             }
           </ul>
         </nz-dropdown-menu>

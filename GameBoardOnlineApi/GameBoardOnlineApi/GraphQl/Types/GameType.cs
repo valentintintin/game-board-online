@@ -18,7 +18,8 @@ public class GameType : ObjectType<Game>
             .Resolve(context =>
             {
                 var game = context.Parent<Game>();
-                return $"/assets/game-board-collections/{game.Type}/{game.Image}";
+                var configuration = context.Services.GetRequiredService<IConfiguration>();
+                return $"{configuration["ApiUrl"]}{configuration["AssetsPath"]}/{game.Type}/{game.Image}";
             });
     }
 }

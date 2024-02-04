@@ -26,9 +26,9 @@
 
     <h3>Liste des jeux</h3>
 
-    <div nz-row>
+    <div nz-row [nzGutter]="16">
       @for (game of (games$ | async)?.data?.games ?? []; track game.id) {
-        <app-game-card (newGame)="initGame($event.id)"
+        <app-game-card nz-col (newGame)="initGame($event.id)"
                        [game]="game"
                        [gamesPlayed]="(room$ | async)?.data?.room?.games ?? []"></app-game-card>
       }

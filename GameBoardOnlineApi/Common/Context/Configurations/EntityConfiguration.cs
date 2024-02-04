@@ -12,5 +12,9 @@ public class EntityConfiguration : IEntityTypeConfiguration<Entity>
         builder.HasOne(e => e.Group)
             .WithMany(eg => eg.Entities)
             .HasForeignKey(e => e.GroupId);
+
+        builder.HasOne(e => e.LinkTo)
+            .WithMany(e => e.EntitiesLinked)
+            .HasForeignKey(e => e.LinkToId);
     }
 }

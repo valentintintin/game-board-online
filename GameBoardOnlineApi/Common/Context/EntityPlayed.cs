@@ -12,6 +12,7 @@ public record EntityPlayed : IEntity, ICreated
     public long GamePlayedId { get; set; }
     
     public virtual required Entity Entity { get; set; }
+    public long EntityId { get; set; }
     
     public virtual Player? Owner { get; set; }
     public long? OwnerId { get; set; }
@@ -31,4 +32,10 @@ public record EntityPlayed : IEntity, ICreated
     public string? Container { get; set; }
     
     public bool CanFlip { get; set; }
+    
+    public virtual EntityPlayed? LinkTo { get; set; }
+    public long? LinkToId { get; set; }
+    public virtual ICollection<EntityPlayed> EntitiesLinked { get; set; } = [];
+
+    public bool IsInMainContainer() => Y >= 0;
 }

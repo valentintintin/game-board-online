@@ -17,6 +17,7 @@ public class GameService(ILogger<GameService> logger, IDbContextFactory<DataCont
         var game = Context.Games
             .Include(g => g.EntitiesGroups)
             .ThenInclude(g => g.Entities)
+            .ThenInclude(e => e.LinkTo)
             .FindOrThrow(gameId);
 
         if (room.Users.Count < game.MinPlayers)
@@ -51,25 +52,37 @@ public class GameService(ILogger<GameService> logger, IDbContextFactory<DataCont
                 Rotation = entity.Rotation,
                 ShowBack = entity.ShowBack,
                 CanFlip = entity.CanFlip,
-                OnlyForOwner = entity.OnlyForOwner,
+                OnlyForOwner = entity.OnlyForOwner
             }));
 
             if (entitiesPlayed.Count == 0)
             {
                 throw new GameBoardOnlineException($"Erreur, aucune entité pour {entityGroup.Name} #{entityGroup.Id}");
             }
-
-            entitiesPlayed = RandomizeEntities(entitiesPlayed, entityGroup);
             
             foreach (var entityPlayed in entitiesPlayed)
             {
-                gamePlayed.Entities.Add(entityPlayed);
+                gamePlayed.EntitiesPlayed.Add(entityPlayed);
             }
+        }
+            
+        foreach (var entityPlayed in gamePlayed.EntitiesPlayed.Where(e => e.Entity.LinkTo != null))
+        {
+            entityPlayed.LinkTo = gamePlayed.EntitiesPlayed.First(e => e.Entity == entityPlayed.Entity.LinkTo);
         }
 
         room.CurrentGame = gamePlayed;
         
         Context.Add(gamePlayed);
+        Context.SaveChanges();
+        
+        foreach (var entityGroup in game.EntitiesGroups.Where(g => g.Randomize))
+        {
+            Context.UpdateRange(
+                RandomizeEntities(gamePlayed.EntitiesPlayed.Where(e => e.Entity.Group == entityGroup).ToList(), entityGroup, gamePlayed)
+            );
+        }
+        
         Context.SaveChanges();
 
         roomService.SendChatMessage(roomId, $"Le jeu \"{game.Name}\" commence !");
@@ -95,7 +108,7 @@ public class GameService(ILogger<GameService> logger, IDbContextFactory<DataCont
     public List<EntityPlayed> DeleteEntitiesNotTouched(long gamePlayedId, long entityGroupId)
     {
         var gamePlayed = Context.GamePlayed
-            .Include(g => g.Entities
+            .Include(g => g.EntitiesPlayed
                 .Where(e => e.Entity.Group.CanRemoveNotUsed == true
                             && e.Owner == null 
                             && e.Entity.GroupId == entityGroupId)
@@ -106,7 +119,7 @@ public class GameService(ILogger<GameService> logger, IDbContextFactory<DataCont
             throw new UnauthorizedException("La partie est terminée");
         }
         
-        foreach (var entity in gamePlayed.Entities)
+        foreach (var entity in gamePlayed.EntitiesPlayed)
         {
             entity.Deleted = true;
             Context.Update(entity);
@@ -114,52 +127,63 @@ public class GameService(ILogger<GameService> logger, IDbContextFactory<DataCont
 
         Context.SaveChanges();
         
-        return gamePlayed.Entities.ToList();
+        return gamePlayed.EntitiesPlayed.ToList();
     }
 
     public List<EntityPlayed> RandomizeEntities(long gamePlayedId, long entityGroupId, bool restoreDeleted, bool onlyTouched)
     {
         var entityGroup = Context.EntitiesGroups.FindOrThrow(entityGroupId);
         
-        var gamePlayed = Context.GamePlayed
-            .Include(g => g.Players)
-            .Include(g => g.Entities
-                .Where(e => 
-                    e.Entity.Group.Randomize.HasValue 
-                    && e.Entity.GroupId == entityGroupId
-                    && (restoreDeleted || e.Deleted == false)
-                    && (!onlyTouched || e.Owner != null)
-                )
-            ).FindOrThrow(gamePlayedId);
+        var gamePlayed = Context.GamePlayed.Include(g => g.Players).FindOrThrow(gamePlayedId);
 
         if (gamePlayed.IsFinished)
         {
             throw new UnauthorizedException("La partie est terminée");
         }
 
-        var entitiesPlayed = gamePlayed.Entities.ToList();
-        
-        foreach (var entity in entitiesPlayed)
-        {
-            entity.X = entity.Entity.X;
-            entity.Y = entity.Entity.Y;
-            entity.Order = entity.Entity.Order;
-            entity.Rotation = entity.Entity.Rotation;
-            entity.ShowBack = entity.Entity.ShowBack;
-            entity.CanFlip = entity.Entity.CanFlip;
-            entity.OnlyForOwner = entity.Entity.OnlyForOwner;
-            entity.Deleted = false;
-            entity.Container = null;
-            entity.OwnerId = null;
-            entity.LastActorTouchedId = null;
-        }
-
-        entitiesPlayed = RandomizeEntities(entitiesPlayed, entityGroup);
+        var entitiesPlayed = Context.EntityPlayed
+            .Include(e => e.EntitiesLinked)
+            .ThenInclude(e => e.Entity)
+            .Where(e => 
+                e.Entity.Group.Randomize
+                && e.Entity.GroupId == entityGroupId
+                && (restoreDeleted || e.Deleted == false)
+                && (!onlyTouched || e.Owner != null)
+            ).ToList();
         
         foreach (var entityPlayed in entitiesPlayed)
         {
+            entityPlayed.X = entityPlayed.Entity.X;
+            entityPlayed.Y = entityPlayed.Entity.Y;
+            entityPlayed.Order = entityPlayed.Entity.Order;
+            entityPlayed.Rotation = entityPlayed.Entity.Rotation;
+            entityPlayed.ShowBack = entityPlayed.Entity.ShowBack;
+            entityPlayed.CanFlip = entityPlayed.Entity.CanFlip;
+            entityPlayed.OnlyForOwner = entityPlayed.Entity.OnlyForOwner;
+            entityPlayed.Deleted = false;
+            entityPlayed.Container = null;
+            entityPlayed.OwnerId = null;
+            entityPlayed.LastActorTouchedId = null;
+
+            foreach (var entityLinked in entityPlayed.EntitiesLinked)
+            {
+                entityLinked.X = entityLinked.Entity.X;
+                entityLinked.Y = entityLinked.Entity.Y;
+                entityLinked.Order = entityLinked.Entity.Order;
+                entityLinked.Rotation = entityLinked.Entity.Rotation;
+                entityLinked.ShowBack = entityLinked.Entity.ShowBack;
+                entityLinked.CanFlip = entityLinked.Entity.CanFlip;
+                entityLinked.OnlyForOwner = entityLinked.Entity.OnlyForOwner;
+                entityLinked.Deleted = false;
+                entityLinked.Container = null;
+                entityLinked.OwnerId = null;
+                entityLinked.LastActorTouchedId = null;
+            }
+            
             Context.Update(entityPlayed);
         }
+
+        entitiesPlayed = RandomizeEntities(entitiesPlayed, entityGroup, gamePlayed);
         
         Context.SaveChanges();
         
@@ -176,12 +200,25 @@ public class GameService(ILogger<GameService> logger, IDbContextFactory<DataCont
             throw new ForbiddenGameActionException("Déplacer");
         }
 
+        var deltaX = x - entityPlayed.X;
+        var deltaY = y - entityPlayed.Y;
+
         entityPlayed.X = x;
         entityPlayed.Y = y;
         entityPlayed.Container = container;
         entityPlayed.LastActorTouched = player;
 
         Context.Update(entityPlayed);
+
+        foreach (var entityLinked in entityPlayed.EntitiesLinked.Where(e => e.Entity is { MoveWithLink: true, CanMove: true }))
+        {
+            entityLinked.X += deltaX;
+            entityLinked.Y += deltaY;
+            entityLinked.Container = container;
+            entityLinked.LastActorTouched = player;
+            Context.Update(entityLinked);    
+        }
+        
         Context.SaveChanges();
 
         return entityPlayed;
@@ -217,6 +254,15 @@ public class GameService(ILogger<GameService> logger, IDbContextFactory<DataCont
         entityPlayed.LastActorTouched = player;
         
         Context.Update(entityPlayed);
+        
+        foreach (var entityLinked in entityPlayed.EntitiesLinked.Where(e => e.Entity.CanFlip))
+        {
+            entityLinked.ShowBack = showBack;
+            entityLinked.Owner ??= player;
+            entityLinked.LastActorTouched = player;
+            Context.Update(entityLinked);    
+        }
+        
         Context.SaveChanges();
 
         return entityPlayed;
@@ -231,12 +277,21 @@ public class GameService(ILogger<GameService> logger, IDbContextFactory<DataCont
         {
             throw new ForbiddenGameActionException("Tourner");
         }
+
+        var delta = rotation - entityPlayed.Rotation;
         
         entityPlayed.Rotation = rotation;
-        entityPlayed.Owner ??= player;
         entityPlayed.LastActorTouched = player;
         
         Context.Update(entityPlayed);
+        
+        foreach (var entityLinked in entityPlayed.EntitiesLinked.Where(e => e.Entity is { MoveWithLink: true, CanRotate: true }))
+        {
+            entityLinked.Rotation += delta;
+            entityLinked.LastActorTouched = player;
+            Context.Update(entityLinked);    
+        }
+        
         Context.SaveChanges();
 
         return entityPlayed;
@@ -257,6 +312,15 @@ public class GameService(ILogger<GameService> logger, IDbContextFactory<DataCont
         entityPlayed.LastActorTouched = player;
         
         Context.Update(entityPlayed);
+
+        foreach (var entityLinked in entityPlayed.EntitiesLinked.Where(e => e.Entity is { DeleteWithLink: true, CanBeDeleted: true }))
+        {
+            entityLinked.Deleted = true;
+            entityLinked.Owner = null;
+            entityLinked.LastActorTouched = player;
+            Context.Update(entityLinked);    
+        }
+        
         Context.SaveChanges();
 
         return entityPlayed;
@@ -278,6 +342,15 @@ public class GameService(ILogger<GameService> logger, IDbContextFactory<DataCont
         entityPlayed.Container = container;
         
         Context.Update(entityPlayed);
+
+        foreach (var entityLinked in entityPlayed.EntitiesLinked)
+        {
+            entityLinked.Owner = newPlayer;
+            entityLinked.LastActorTouched = player;
+            entityLinked.Container = container;
+            Context.Update(entityLinked);    
+        }
+        
         Context.SaveChanges();
 
         return entityPlayed;
@@ -352,81 +425,77 @@ public class GameService(ILogger<GameService> logger, IDbContextFactory<DataCont
         return player == entityPlayed.Owner;
     }
 
-    private List<EntityPlayed> RandomizeEntities(List<EntityPlayed> entitiesPlayed, EntityGroup entityGroup)
+    private List<EntityPlayed> RandomizeEntities(List<EntityPlayed> entitiesPlayed, EntityGroup entityGroup, GamePlayed gamePlayed)
     {
-        var players = entitiesPlayed.First().GamePlayed.Players;
-        
-        switch (entityGroup.Randomize)
+        var players = gamePlayed.Players;
+
+        if (entityGroup.Randomize)
         {
-            case RandomizeType.Simple:
-                entitiesPlayed = entitiesPlayed
-                    .OrderBy(_ => Random.Shared.Next())
-                    .Select((e, i) =>
-                    {
-                        e.Order = e.Entity.Order + i;
-                        return e;
-                    })
-                    .ToList();
-                break;
-            case RandomizeType.InPlace:
-                entitiesPlayed = entitiesPlayed
-                    .OrderBy(_ => Random.Shared.Next())
-                    .Select((e, i) =>
-                    {
-                        var entityInGroup = entityGroup.Entities.ElementAt(i);
-                            
-                        e.X = entityInGroup.X;
-                        e.Y = entityInGroup.Y;
+            Queue<Player> playersToGive = [];
 
-                        return e;
-                    })
-                    .ToList();
-                break;
-            case RandomizeType.SimpleForPlayers:
-                entitiesPlayed = entitiesPlayed
-                    .OrderBy(_ => Random.Shared.Next())
-                    .Select((e, i) =>
+            if (entityGroup.NumberToGiveToPlayer > 0)
+            {
+                foreach (var player in players)
+                {
+                    for (var i = 0; i < entityGroup.NumberToGiveToPlayer; i++)
                     {
-                        if (i < players.Count)
+                        playersToGive.Enqueue(player);
+                    }
+                }
+            }
+            
+            return entitiesPlayed
+                .OrderBy(_ => Random.Shared.Next())
+                .Select((e, i) =>
+                {
+                    var entityInGroup = entityGroup.Entities.ElementAt(i);
+                    
+                    e.X = entityInGroup.X;
+                    e.Y = entityInGroup.Y;
+                    
+                    if (playersToGive.Count > 0)
+                    {
+                        var player = playersToGive.Dequeue();
+                        var newX = (e.Entity.Width + 5) * entitiesPlayed.Count(ee => ee.OwnerId == player.Id);
+
+                        e.X += newX;
+                        e.OwnerId = player.Id;
+
+                        if (!e.IsInMainContainer())
                         {
-                            var playerId = players.ElementAt(i).Id;
-
-                            e.Order = e.Entity.Order + i + 1;
-                            e.Container = $"player-{playerId}";
-                            e.OwnerId = playerId;
+                            e.Container = $"player-{player.Id}";
                         }
-
-                        return e;
-                    })
-                    .ToList();
-                break;
-            case RandomizeType.InPlaceForPlayers:
-                entitiesPlayed = entitiesPlayed
-                    .Take(players.Count)
-                    .OrderBy(_ => Random.Shared.Next())
-                    .Select((e, i) =>
-                    {
-                        var entityInGroup = entityGroup.Entities.ElementAt(i);
-                            
-                        e.X = entityInGroup.X;
-                        e.Y = entityInGroup.Y;
                         
-                        if (i < players.Count)
+                        foreach (var eLinked in e.EntitiesLinked)
                         {
-                            var playerId = players.ElementAt(i).Id;
+                            if (eLinked.Entity.MoveWithLink)
+                            {
+                                eLinked.X += newX;
+                            }
 
-                            e.Container = $"player-{playerId}";
-                            e.OwnerId = playerId;
+                            eLinked.OwnerId = e.OwnerId;
+
+                            if (!eLinked.IsInMainContainer())
+                            {
+                                eLinked.Container = e.Container;
+                            }
                         }
+                    }
+                    else if (entityGroup.CanRemoveNotUsed)
+                    {
+                        e.Deleted = true;
+                        
+                        foreach (var eLinked in e.EntitiesLinked)
+                        {
+                            if (eLinked.Entity.DeleteWithLink)
+                            {
+                                eLinked.Deleted = true;
+                            }
+                        }
+                    }
 
-                        return e;
-                    })
-                    .ToList();
-                break;
-            case null:
-                break;
-            default:
-                throw new ArgumentOutOfRangeException();
+                    return e;
+                }).ToList();
         }
 
         return entitiesPlayed;

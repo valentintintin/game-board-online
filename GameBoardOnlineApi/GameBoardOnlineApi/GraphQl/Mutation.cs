@@ -140,25 +140,27 @@ public class Mutation
     [Authorize]
     [UseFirstOrDefault]
     [UseProjection]
-    public async Task<IQueryable<Room>> SetCurrentGame(long roomId, long gamePlayedId, DataContext context, 
+    public async Task<IQueryable<Room>> SetCurrentGame(long gamePlayedId, DataContext context, 
         [Service] RoomService roomService, [Service] SecurityService securityService, ClaimsPrincipal claimsPrincipal,
         [Service] ITopicEventSender sender)
     {
         var userId = claimsPrincipal.GetUserId();
 
-        if (!securityService.IsRoomAllowed(roomId, userId))
+        if (!securityService.IsGamePlayedAllowed(gamePlayedId, userId))
         {
-            throw new UnauthorizedException("Vous n'êtes pas dans le salon");
+            throw new UnauthorizedException("Vous n'êtes pas dans le jeu");
         }
+
+        var room = roomService.SetCurrentGame(gamePlayedId);
         
         await sender.SendAsync(nameof(Subscription.RoomAction), new EventRoomAction
         {
             Action = RoomAction.NewGame,
-            Room = roomService.SetCurrentGame(roomId, gamePlayedId),
+            Room = room,
             User = context.Users.FindOrThrow(userId)
         });
         
-        return context.Rooms.FindByIdAsQueryable(roomId);
+        return context.Rooms.FindByIdAsQueryable(room.Id);
     }
     
     [Authorize]

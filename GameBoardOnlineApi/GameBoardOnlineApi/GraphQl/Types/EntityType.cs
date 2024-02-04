@@ -21,7 +21,9 @@ public class EntityType : ObjectType<Entity>
                     .Include(e => e.Group)
                     .ThenInclude(g => g.Game)
                     .FindOrThrow(context.Parent<Entity>().Id);
-                return $"/assets/game-board-collections/{entity.Group.Game.Type}/{entity.Image}";
+                
+                var configuration = context.Services.GetRequiredService<IConfiguration>();
+                return $"{configuration["ApiUrl"]}{configuration["AssetsPath"]}/{entity.Group.Game.Type}/{entity.Image}";
             });
 
         descriptor
@@ -33,7 +35,9 @@ public class EntityType : ObjectType<Entity>
                     .Include(e => e.Group)
                     .ThenInclude(g => g.Game)
                     .FindOrThrow(context.Parent<Entity>().Id);
-                return $"/assets/game-board-collections/{entity.Group.Game.Type}/{entity.ImageBack ?? entity.Group.ImageBack}";
+                
+                var configuration = context.Services.GetRequiredService<IConfiguration>();
+                return $"{configuration["ApiUrl"]}{configuration["AssetsPath"]}/{entity.Group.Game.Type}/{entity.ImageBack ?? entity.Group.ImageBack}";
             });
     }
 }

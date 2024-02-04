@@ -9,14 +9,14 @@ import {
   GetGamePlayedGQL,
   GiveEntityGQL,
   MoveEntityGQL, RandomizeEntitiesGQL,
-  RotateEntityGQL
+  RotateEntityGQL, SetCurrentGameGQL
 } from "../../../../services/api/generated.service";
 import {ActivatedRoute, Router} from "@angular/router";
 import {AsyncPipe, NgOptimizedImage} from "@angular/common";
 import {NzPageHeaderModule} from "ng-zorro-antd/page-header";
 import {GameEntityComponent} from "./game-entity/game-entity.component";
 import {CdkDrag, CdkDragEnd, CdkDropList} from "@angular/cdk/drag-drop";
-import {Subscription} from "rxjs";
+import {delay, of, Subscription} from "rxjs";
 import {NzSpinComponent} from "ng-zorro-antd/spin";
 import {NzSegmentedModule, NzSegmentedOption} from "ng-zorro-antd/segmented";
 import {FormsModule} from "@angular/forms";
@@ -114,6 +114,7 @@ export class GameComponent implements OnInit, OnDestroy {
               color
             }
           }
+          linkToId
         }
       }
     }
@@ -145,6 +146,26 @@ export class GameComponent implements OnInit, OnDestroy {
             color
           }
         }
+        entitiesLinked {
+          id
+          canFlip
+          canMove
+          canRotate
+          canBeDeleted
+          isMine
+          x
+          y
+          rotation
+          container
+          showBack
+          deleted
+          owner {
+            id
+            user {
+              id
+            }
+          }
+        }
       }
     }
   `;
@@ -154,6 +175,7 @@ export class GameComponent implements OnInit, OnDestroy {
   private readonly gamePlayedGQL = inject(GetGamePlayedGQL);
   private readonly moveGQL = inject(MoveEntityGQL);
   private readonly gameActionGQL = inject(GameActionGQL);
+  private readonly setCurrentGameGQL = inject(SetCurrentGameGQL);
 
   @ViewChild('main', { read: ElementRef }) mainContainer?: ElementRef;
   @ViewChild('playerHand', { read: ElementRef }) playerHandContainer?: ElementRef;
@@ -163,6 +185,7 @@ export class GameComponent implements OnInit, OnDestroy {
   loading = true;
   options: NzSegmentedOption[] = [];
   optionSelected = 0;
+  entitySelected?: EntityPlayed | any | undefined;
 
   ngOnInit() {
     this.subscriptions.add(
@@ -200,6 +223,14 @@ export class GameComponent implements OnInit, OnDestroy {
         }
       })
     );
+
+    this.subscriptions.add(
+      of(true).pipe(
+        delay(30_000)
+      ).subscribe(() => {
+        this.setCurrentGame();
+      })
+    );
   }
 
   ngOnDestroy() {
@@ -221,6 +252,12 @@ export class GameComponent implements OnInit, OnDestroy {
               id
             }
           }
+          entitiesLinked {
+            id
+            x
+            y
+            container
+          }
         }
       }
     `;
@@ -234,8 +271,9 @@ export class GameComponent implements OnInit, OnDestroy {
       }).subscribe()
     );
   }
+
   flip(entity: EntityPlayed, showBack: boolean, onlyForOwner?: boolean) {
-    if (!entity.canFlip) {
+    if (entity.canFlip === 'NOT_FLIPPABLE') {
       this.messageService.warning('Il n\'est pas possible de retourner cet element')
       return;
     }
@@ -320,6 +358,10 @@ export class GameComponent implements OnInit, OnDestroy {
             user {
               id
             }
+          }
+          entitiesLinked {
+            id
+            deleted
           }
         }
       }
@@ -453,6 +495,24 @@ export class GameComponent implements OnInit, OnDestroy {
               id
             }
           }
+          entitiesLinked {
+            id
+            x
+            y
+            container
+            order
+            rotation
+            showBack
+            canFlip
+            onlyForOwner
+            deleted
+            owner {
+              id
+              user {
+                id
+              }
+            }
+          }
         }
       }
     `;
@@ -467,5 +527,31 @@ export class GameComponent implements OnInit, OnDestroy {
         this.messageService.success(`Elements mélangés`)
       })
     );
+  }
+
+  setCurrentGame() {
+      gql`
+        mutation setCurrentGame($gamePlayedId: Long!) {
+          setCurrentGame(gamePlayedId: $gamePlayedId) {
+            id
+            currentGame {
+              id
+              game {
+                id
+                name
+                image
+              }
+            }
+          }
+        }
+      `;
+
+      this.subscriptions.add(
+        this.setCurrentGameGQL.mutate({
+          gamePlayedId: this.game$()?.id
+        }, {
+          refetchQueries: ['getRoom']
+        }).subscribe()
+      );
   }
 }

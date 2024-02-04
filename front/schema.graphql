@@ -21,12 +21,17 @@ type Entity {
   canFlip: Boolean!
   canMove: Boolean!
   canRotate: Boolean!
+  deleteWithLink: Boolean!
+  entitiesLinked: [Entity!]!
   group: EntityGroup!
   groupId: Long!
   height: Int!
   id: Long!
   image: String
   imageBack: String
+  linkTo: Entity
+  linkToId: Long
+  moveWithLink: Boolean!
   name: String!
   onlyForOwner: Boolean!
   order: Int!
@@ -38,13 +43,14 @@ type Entity {
 }
 
 type EntityGroup {
-  canRemoveNotUsed: Boolean
+  canRemoveNotUsed: Boolean!
   entities: [Entity!]!
   game: Game!
   gameId: Long!
   id: Long!
   imageBack: String
   name: String!
+  numberToGiveToPlayer: Int!
   randomize: Boolean!
 }
 
@@ -57,7 +63,9 @@ type EntityPlayed {
   container: String
   createdAt: DateTime!
   deleted: Boolean!
+  entitiesLinked: [EntityPlayed!]!
   entity: Entity!
+  entityId: Long!
   gamePlayed: GamePlayed!
   gamePlayedId: Long!
   height: Int!
@@ -66,6 +74,9 @@ type EntityPlayed {
   imageBack: String
   isMine: Boolean!
   lastActorTouched: Player
+  lastActorTouchedId: Long
+  linkTo: EntityPlayed
+  linkToId: Long
   name: String
   onlyForOwner: Boolean!
   order: Int!
@@ -115,7 +126,7 @@ type Mutation {
   login(color: String!, name: String!): User
   randomizeEntities(entityGroupId: Long!, gamePlayedId: Long!, onlyTouched: Boolean!, restoreDeleted: Boolean!): [EntityPlayed!]!
   sendChatMessage(message: String!, roomId: Long!): ChatMessage
-  setCurrentGame(gamePlayedId: Long!, roomId: Long!): Room
+  setCurrentGame(gamePlayedId: Long!): Room
   updateEntity(dto: EntityUpdateDtoInput!, entityId: Long!): [Entity!]!
 }
 

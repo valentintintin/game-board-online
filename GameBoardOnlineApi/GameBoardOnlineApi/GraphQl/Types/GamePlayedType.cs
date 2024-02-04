@@ -13,8 +13,9 @@ public class GamePlayedType : ObjectType<GamePlayed>
         base.Configure(descriptor);
 
         descriptor.Field(e => e.GameId).IsProjected();
-
-        descriptor.Field(e => e.Entities)
+        
+        descriptor.Field(e => e.EntitiesPlayed)
+            .Name("entities")
             .UseDbContext<DataContext>()
             .Resolve(context =>
             {

@@ -15,7 +15,7 @@ public record GamePlayed : IEntity, ICreated
     public bool IsFinished { get; set; }
     
     public virtual ICollection<Player> Players { get; set; } = [];
-    public virtual ICollection<EntityPlayed> Entities { get; set; } = [];
+    public virtual ICollection<EntityPlayed> EntitiesPlayed { get; set; } = [];
     
     public virtual required Room Room { get; set; }
     public long RoomId { get; set; }

@@ -15,7 +15,8 @@ public class EntityPlayedType : ObjectTypeExtension<EntityPlayed>
             .Resolve(context =>
             {
                 var entity = context.Parent<EntityPlayed>();
-                return $"/assets/game-board-collections/{entity.GamePlayed.Game.Type}/{entity.Entity.Image}";
+                var configuration = context.Services.GetRequiredService<IConfiguration>();
+                return $"{configuration["ApiUrl"]}{configuration["AssetsPath"]}/{entity.GamePlayed.Game.Type}/{entity.Entity.Image}";
             });
 
         descriptor
@@ -23,7 +24,8 @@ public class EntityPlayedType : ObjectTypeExtension<EntityPlayed>
             .Resolve(context =>
             {
                 var entity = context.Parent<EntityPlayed>();
-                return $"/assets/game-board-collections/{entity.GamePlayed.Game.Type}/{entity.Entity.ImageBack ?? entity.Entity.Group.ImageBack}";
+                var configuration = context.Services.GetRequiredService<IConfiguration>();
+                return $"{configuration["ApiUrl"]}{configuration["AssetsPath"]}/{entity.GamePlayed.Game.Type}/{entity.Entity.ImageBack ?? entity.Entity.Group.ImageBack}";
             });
         
         descriptor
